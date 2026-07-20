@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coplay – Online-Hub</title>
+<link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+<div id="topbar">
+  <div id="logo">🏡 Co<span>play</span></div>
+  <div class="stat" id="money">💰 0 Taler</div>
+  <div class="stat"><span id="lvlBadge">Lv 1</span><div id="xpWrap"><div id="xpFill"></div></div><span id="xpText"></span></div>
+  <div class="stat" id="onlineBadge" title="Spieler online">🟢 1 online</div>
+  <div style="flex:1"></div>
+  <button class="btn primary" id="modeBtn">🔨 Bauen</button>
+  <button class="btn" id="achBtn">🏆 Erfolge</button>
+  <button class="btn" id="profileBtn">👤 Profil</button>
+  <button class="btn" id="helpBtn">❓ Hilfe</button>
+  <button class="btn danger" id="resetBtn">↺ Neu starten</button>
+</div>
+<div id="main">
+  <div id="canvasWrap">
+    <canvas id="cv" width="1040" height="660"></canvas>
+    <div id="toasts"></div>
+    <div id="menu"></div>
+  </div>
+  <div id="side">
+    <div class="card" id="needsCard">
+      <h3>Bedürfnisse</h3>
+      <div id="needsList"></div>
+      <div id="moodLine"></div>
+    </div>
+    <div class="card" id="petCard">
+      <h3>🐾 Haustier</h3>
+      <div id="petBody"></div>
+    </div>
+    <div class="card" id="chatCard">
+      <h3>💬 Globaler Chat</h3>
+      <div id="chatMsgs"></div>
+      <form id="chatForm" autocomplete="off">
+        <input type="text" id="chatInput" maxlength="300" placeholder="Nachricht an alle …">
+        <button class="btn primary" type="submit">➤</button>
+      </form>
+    </div>
+    <div class="card" id="shopCard">
+      <h3>🛒 Möbel-Shop</h3>
+      <div id="buyHint">Möbel wählen und im Hub platzieren – alle sehen sie! Eigene Möbel anklicken zum Verschieben/Verkaufen. <kbd>Esc</kbd> bricht ab.</div>
+      <div id="shopList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="startOverlay">
+  <div class="box">
+    <h2>🏡 Willkommen im Coplay-Hub!</h2>
+    <p>Erstelle deinen Bewohner und triff andere Spieler im gemeinsamen Hub: rumlaufen, chatten, arbeiten, bauen – und ein Haustier großziehen.</p>
+    <label>Dein Name</label>
+    <input type="text" id="nameInput" maxlength="14" value="">
+    <label>Lieblingsfarbe (Kleidung)</label>
+    <div class="swatches" id="swatches"></div>
+    <br>
+    <button class="btn primary" id="startBtn" style="width:100%">Los geht's!</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="helpOverlay">
+  <div class="box">
+    <h2>❓ So wird gespielt</h2>
+    <p><b>Hub:</b> Alle Spieler teilen sich denselben Raum. Du siehst andere live rumlaufen – der globale Chat ist rechts.</p>
+    <p><b>Leben-Modus:</b> Klicke auf Möbel für Aktionen (essen, schlafen, duschen, arbeiten …). Klicke auf den Boden, um loszulaufen.</p>
+    <p><b>Arbeiten:</b> Am Schreibtisch verdienst du Taler und XP. Es gibt aktuell <b>5 Level</b> – jedes Level schaltet neue Möbel frei.</p>
+    <p><b>Stimmung:</b> Sind alle Bedürfnisse hoch, gibt es mehr XP. Ein glückliches Haustier gibt nochmal +10 %.</p>
+    <p><b>Bauen-Modus (🔨):</b> Möbel kaufen und im Hub platzieren – <b>alle sehen sie</b>. Eigene Möbel kannst du verschieben oder verkaufen (50 % zurück). Hub-Möbel sind fest.</p>
+    <p><b>Haustier:</b> Adoptiere eins in der Seitenleiste, füttere es und spiel mit ihm – Tamagotchi lässt grüßen.</p>
+    <p><b>Tasten:</b> <kbd>B</kbd> Modus wechseln · <kbd>Esc</kbd> Abbrechen</p>
+    <p>Dein Spielstand wird im Browser gespeichert, Chat und Einrichtung liegen in der Cloud.</p>
+    <button class="btn primary" id="helpClose" style="width:100%">Alles klar!</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="achOverlay">
+  <div class="box">
+    <h2>🏆 Erfolge</h2>
+    <div id="achList"></div>
+    <br>
+    <button class="btn primary" id="achClose" style="width:100%">Schließen</button>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
