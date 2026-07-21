@@ -13,6 +13,9 @@ export const ACH = [
   { id: "tierfreund", icon: "🐾", name: "Tierfreund", desc: "Ein Haustier adoptiert", cond: s => !!s.pet },
   { id: "gute_seele", icon: "🍖", name: "Gute Seele", desc: "Haustier 5-mal gefüttert", cond: s => s.stats.feeds >= 5 },
   { id: "gesellig", icon: "👥", name: "Gesellig", desc: "Mit 2 anderen Spielern gleichzeitig online", cond: s => (s.stats.maxOnline || 0) >= 2 },
+  { id: "weltenbummler", icon: "🗺️", name: "Weltenbummler", desc: "Alle 3 Räume besucht", cond: s => s.stats.rooms && Object.keys(s.stats.rooms).length >= 3 },
+  { id: "questmeister", icon: "🎯", name: "Questmeister", desc: "Erste Tagesquest abgeschlossen", cond: s => (s.stats.questsDone || 0) >= 1 },
+  { id: "questlegende", icon: "🏅", name: "Quest-Legende", desc: "10 Tagesquests abgeschlossen", cond: s => (s.stats.questsDone || 0) >= 10 },
 ];
 
 export function trackStat(key, inc) {

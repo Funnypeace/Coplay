@@ -5,6 +5,7 @@ import { toast, uiTop } from "./ui.js";
 import { gainXp } from "./progress.js";
 import { trackPresence } from "./net.js";
 import { trackStat, checkAll } from "./achievements.js";
+import { questEvent } from "./quests.js";
 
 export const PETS = {
   katze: { emoji: "🐱", name: "Katze" },
@@ -32,7 +33,7 @@ function feedPet() {
   p.food = clamp(p.food + 45, 0, 100);
   const pp = petPixel();
   if (pp) fl(pp.x, pp.y - 40, "🍖 mampf!", "#f4c95d");
-  trackStat("feeds"); renderPetCard(); saveNow(); uiTop();
+  trackStat("feeds"); questEvent("feed"); renderPetCard(); saveNow(); uiTop();
 }
 function playPet() {
   const p = S.pet; if (!p) return;
@@ -40,7 +41,7 @@ function playPet() {
   p.fun = clamp(p.fun + 40, 0, 100);
   const pp = petPixel();
   if (pp) fl(pp.x, pp.y - 40, "🎾 juhu!", "#9fe8c5");
-  gainXp(4, 0); renderPetCard(); saveNow();
+  gainXp(4, 0); questEvent("play"); renderPetCard(); saveNow();
 }
 
 export function updatePet(dt) {

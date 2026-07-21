@@ -14,6 +14,8 @@
   <div class="stat" id="onlineBadge" title="Spieler online">🟢 1 online</div>
   <div style="flex:1"></div>
   <button class="btn primary" id="modeBtn">🔨 Bauen</button>
+  <button class="btn" id="roomBtn">🚪 Lounge</button>
+  <button class="btn" id="questBtn">🎯 Quests</button>
   <button class="btn" id="achBtn">🏆 Erfolge</button>
   <button class="btn" id="profileBtn">👤 Profil</button>
   <button class="btn" id="helpBtn">❓ Hilfe</button>
@@ -22,6 +24,7 @@
 <div id="main">
   <div id="canvasWrap">
     <canvas id="cv" width="1040" height="660"></canvas>
+    <div id="emoteBar"></div>
     <div id="toasts"></div>
     <div id="menu"></div>
   </div>
@@ -53,14 +56,21 @@
 
 <div class="overlay hidden" id="startOverlay">
   <div class="box">
-    <h2>🏡 Willkommen im Coplay-Hub!</h2>
-    <p>Erstelle deinen Bewohner und triff andere Spieler im gemeinsamen Hub: rumlaufen, chatten, arbeiten, bauen – und ein Haustier großziehen.</p>
+    <h2 id="startTitle">🏡 Willkommen im Coplay-Hub!</h2>
+    <p id="startIntro">Melde dich mit Namen und Hub-Passwort an – dein Fortschritt wird in der Cloud gespeichert und ist auf jedem Gerät da. Neue Namen werden automatisch registriert.</p>
     <label>Dein Name</label>
-    <input type="text" id="nameInput" maxlength="14" value="">
+    <input type="text" id="nameInput" maxlength="14" value="" autocomplete="username">
+    <div id="pwRow">
+      <label>Hub-Passwort <span class="pwHint">(frag den Betreiber 😉)</span></label>
+      <input type="password" id="pwInput" maxlength="72" autocomplete="current-password">
+    </div>
     <label>Lieblingsfarbe (Kleidung)</label>
     <div class="swatches" id="swatches"></div>
+    <div id="authError"></div>
     <br>
-    <button class="btn primary" id="startBtn" style="width:100%">Los geht's!</button>
+    <button class="btn primary" id="startBtn" style="width:100%">Anmelden / Registrieren</button>
+    <button class="btn" id="guestBtn" style="width:100%; margin-top:8px">Als Gast spielen (nur dieses Gerät)</button>
+    <button class="btn danger hidden" id="logoutBtn" style="width:100%; margin-top:8px">Abmelden</button>
   </div>
 </div>
 
@@ -73,7 +83,9 @@
     <p><b>Stimmung:</b> Sind alle Bedürfnisse hoch, gibt es mehr XP. Ein glückliches Haustier gibt nochmal +10 %.</p>
     <p><b>Bauen-Modus (🔨):</b> Möbel kaufen und im Hub platzieren – <b>alle sehen sie</b>. Eigene Möbel kannst du verschieben oder verkaufen (50 % zurück). Hub-Möbel sind fest.</p>
     <p><b>Haustier:</b> Adoptiere eins in der Seitenleiste, füttere es und spiel mit ihm – Tamagotchi lässt grüßen.</p>
-    <p><b>Tasten:</b> <kbd>B</kbd> Modus wechseln · <kbd>Esc</kbd> Abbrechen</p>
+    <p><b>Räume:</b> Es gibt drei Räume (Lounge, Garten, Arcade). Wechsle über die Tür links, den 🚪-Knopf oben – jeder Raum hat eigene Einrichtung.</p>
+    <p><b>Quests & Emotes:</b> Täglich drei Quests (🎯 oben). Emotes über die Leiste unten links oder Tasten <kbd>1</kbd>–<kbd>6</kbd>.</p>
+    <p><b>Tasten:</b> <kbd>B</kbd> Modus wechseln · <kbd>1</kbd>–<kbd>6</kbd> Emotes · <kbd>Esc</kbd> Abbrechen</p>
     <p>Dein Spielstand wird im Browser gespeichert, Chat und Einrichtung liegen in der Cloud.</p>
     <button class="btn primary" id="helpClose" style="width:100%">Alles klar!</button>
   </div>
@@ -85,6 +97,16 @@
     <div id="achList"></div>
     <br>
     <button class="btn primary" id="achClose" style="width:100%">Schließen</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="questOverlay">
+  <div class="box">
+    <h2>🎯 Tagesquests</h2>
+    <p>Jeden Tag drei neue Aufgaben – Belohnung gibt's automatisch beim Abschluss.</p>
+    <div id="questList"></div>
+    <br>
+    <button class="btn primary" id="questClose" style="width:100%">Schließen</button>
   </div>
 </div>
 

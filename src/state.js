@@ -1,5 +1,5 @@
-/* Lokaler Spielstand + Spieler-Identität */
-import { SHIRTS, NEED_KEYS } from "./catalog.js";
+/* Lokaler Spielstand + Spieler-Identität + Account */
+import { SHIRTS, NEED_KEYS, ROOMS } from "./catalog.js";
 
 export const SAVE_KEY = "coplay_save_v1";
 const PID_KEY = "coplay_pid";
@@ -10,30 +10,45 @@ export function defaultState() {
     needs: { hunger: 80, energie: 90, hygiene: 75, spass: 70 },
     char: { x: 7.5, y: 9.5 },
     pet: null, // {type, name, food, fun}
-    stats: { msgs: 0, works: 0, placed: 0, feeds: 0, moves: 0 },
+    room: "lounge",
+    stats: { msgs: 0, works: 0, placed: 0, feeds: 0, moves: 0, questsDone: 0, rooms: {} },
     ach: {},
+    quests: null, // {date, prog, done, rooms}
     seenIntro: false,
   };
 }
 
 export let S = defaultState();
 
+/* Eingeloggter Account (null-Felder = Gast) */
+export const account = { id: null, username: null, token: null };
+export function activeId() { return account.id || playerId; }
+
 export function saveNow() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+}
+function mergeState(d) {
+  S = Object.assign(defaultState(), d);
+  S.needs = Object.assign(defaultState().needs, d.needs || {});
+  S.stats = Object.assign(defaultState().stats, d.stats || {});
+  S.ach = d.ach || {};
+  if (!ROOMS[S.room]) S.room = "lounge";
+  NEED_KEYS.forEach(k => { if (typeof S.needs[k] !== "number") S.needs[k] = 70; });
 }
 export function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return;
     const d = JSON.parse(raw);
-    if (d && d.needs) {
-      S = Object.assign(defaultState(), d);
-      S.needs = Object.assign(defaultState().needs, d.needs);
-      S.stats = Object.assign(defaultState().stats, d.stats || {});
-      S.ach = d.ach || {};
-      NEED_KEYS.forEach(k => { if (typeof S.needs[k] !== "number") S.needs[k] = 70; });
-    }
+    if (d && d.needs) mergeState(d);
   } catch (e) {}
+}
+/* Cloud-Spielstand übernehmen */
+export function applyCloudSave(cloud) {
+  if (cloud && cloud.needs) { mergeState(cloud); saveNow(); }
+}
+export function exportSave() {
+  return JSON.parse(JSON.stringify(S));
 }
 
 /* Stabile anonyme Spieler-ID pro Browser */

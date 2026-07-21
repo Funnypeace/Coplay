@@ -1,19 +1,23 @@
 /* Spielschleife, Rendering und Eingaben */
-import { GRID, CAT, NEED_KEYS, NEED_META, WALL_H, OX, OY, TW2, TH2 } from "./catalog.js";
+import { GRID, CAT, NEED_KEYS, NEED_META, WALL_H, OX, OY, TW2, TH2, ROOMS } from "./catalog.js";
 import {
   cv, ctx, clamp, isoPt, shade, poly, line, circ, ell, rect, rrect, txt,
   boxIso, southPt, fl, drawFloaters,
 } from "./draw.js";
-import { S, playerId, saveNow, avgNeeds } from "./state.js";
+import { S, activeId, saveNow, avgNeeds } from "./state.js";
 import * as W from "./world.js";
-import { remote, bubbles, broadcastMove, trackPresence, dbPlaceFurniture, dbRemoveFurniture } from "./net.js";
+import {
+  remote, bubbles, broadcastMove, trackPresence, dbPlaceFurniture, dbRemoveFurniture,
+  joinRoom, joinedRoom, loadWorld, sendEmote, connected,
+} from "./net.js";
 import {
   toast, uiTop, uiNeeds, setShopSel, setModeUI, showMenu, hideMenu, menuEl,
-  buildShop, closeOverlaysOnEsc,
+  buildShop, closeOverlaysOnEsc, setRoomUI,
 } from "./ui.js";
 import { gainXp, charPx } from "./progress.js";
 import { updatePet, drawLocalPet, drawRemotePet, petDepth, tickPetUi } from "./pet.js";
-import { trackStat } from "./achievements.js";
+import { trackStat, checkAll } from "./achievements.js";
+import { questEvent } from "./quests.js";
 import { chatHasFocus } from "./chat.js";
 
 /* Laufzeit-Zustand */
@@ -36,17 +40,20 @@ function dayInfo() {
 }
 
 /* ================= Wände & Boden ================= */
+function theme() { return ROOMS[S.room] || ROOMS.lounge; }
+
 function drawWalls(night) {
-  const glass = night ? "#26345e" : "#aee0ff";
+  const T = theme();
+  const glass = night ? T.glassNight : T.glassDay;
   for (let y = 0; y < GRID; y++) {
     const a = isoPt(0, y, 0), b = isoPt(0, y + 1, 0);
-    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], y % 2 ? "#5b688a" : "#5f6c90");
-    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], "#46516e");
+    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], y % 2 ? T.wallL[0] : T.wallL[1]);
+    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], T.stripL);
   }
   for (let x = 0; x < GRID; x++) {
     const a = isoPt(x, 0, 0), b = isoPt(x + 1, 0, 0);
-    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], x % 2 ? "#6a78a0" : "#6e7ca4");
-    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], "#525e7e");
+    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], x % 2 ? T.wallR[0] : T.wallR[1]);
+    poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], T.stripR);
   }
   // Fenster rechte Wand
   [[1.4, 3.2], [5.4, 7.2], [9.4, 11.2]].forEach(seg => {
@@ -72,9 +79,10 @@ function drawWalls(night) {
 }
 
 function drawFloor() {
+  const T = theme();
   for (let y = 0; y < GRID; y++) for (let x = 0; x < GRID; x++) {
     const a = isoPt(x, y), b = isoPt(x + 1, y), c = isoPt(x + 1, y + 1), d = isoPt(x, y + 1);
-    poly([[a.x, a.y], [b.x, b.y], [c.x, c.y], [d.x, d.y]], (x + y) % 2 ? "#c2995f" : "#cba368", "rgba(0,0,0,.08)");
+    poly([[a.x, a.y], [b.x, b.y], [c.x, c.y], [d.x, d.y]], (x + y) % 2 ? T.floor[0] : T.floor[1], "rgba(0,0,0,.08)");
   }
   if (mode === "buy") {
     for (let i = 0; i <= GRID; i++) {
@@ -282,8 +290,9 @@ function drawBubble(gx, gy, text) {
 export function render(t, dt) {
   ctx.clearRect(0, 0, cv.width, cv.height);
   const day = dayInfo();
+  const T = theme();
   const grd = ctx.createLinearGradient(0, 0, 0, cv.height);
-  grd.addColorStop(0, "#1d2438"); grd.addColorStop(1, "#242c44");
+  grd.addColorStop(0, T.bg[0]); grd.addColorStop(1, T.bg[1]);
   ctx.fillStyle = grd; ctx.fillRect(0, 0, cv.width, cv.height);
   drawWalls(day.night);
   drawFloor();
@@ -340,12 +349,79 @@ export function render(t, dt) {
   const now = performance.now();
   bubbles.forEach((b, id) => {
     if (b.until < now) { bubbles.delete(id); return; }
-    if (id === playerId) drawBubble(S.char.x, S.char.y, b.text);
+    if (id === activeId()) drawBubble(S.char.x, S.char.y, b.text);
     else { const p = remote.get(id); if (p) drawBubble(p.x, p.y, b.text); }
   });
-  // Uhr
+  // Emotes über den Köpfen
+  emoteMap.forEach((e, id) => {
+    const age = (now - e.t0) / 2200;
+    if (age >= 1) { emoteMap.delete(id); return; }
+    let gx = null, gy = null;
+    if (id === activeId()) { gx = S.char.x; gy = S.char.y; }
+    else { const p = remote.get(id); if (p) { gx = p.x; gy = p.y; } }
+    if (gx == null) return;
+    const P = isoPt(gx, gy, 0);
+    ctx.globalAlpha = age < 0.6 ? 1 : 1 - (age - 0.6) / 0.4;
+    txt(e.e, P.x, P.y - 92 - age * 30, 22, "#fff");
+    ctx.globalAlpha = 1;
+  });
+  // Uhr + Raumname
   const hh = Math.floor(day.hour), mm = Math.floor((day.hour % 1) * 60);
   txt((day.night ? "🌙 " : "☀️ ") + String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"), 70, 28, 14, "#cfd8ec", "left");
+  txt(theme().emoji + " " + theme().name, 70, 48, 12.5, "#9aa7c4", "left");
+}
+
+/* ================= Emotes ================= */
+export const EMOTES = ["👋", "😂", "❤️", "👍", "😮", "🎉"];
+const emoteMap = new Map(); // id -> {e, t0}
+export function showEmote(id, e) {
+  emoteMap.set(id, { e, t0: performance.now() });
+}
+function sendMyEmote(e) {
+  showEmote(activeId(), e);
+  sendEmote(e);
+  questEvent("emote");
+}
+
+/* ================= Raumwechsel ================= */
+let switching = false;
+export async function switchRoom(room) {
+  if (switching || !ROOMS[room] || room === joinedRoom) return;
+  switching = true;
+  hideMenu(); cancelSelection();
+  try {
+    S.room = room;
+    charPath = []; action = null; pendingAction = null;
+    await joinRoom(room);
+    const world = await loadWorld(room);
+    W.setFurniture(world);
+    const free = W.findFreeTile(7, 9);
+    S.char.x = free.x + 0.5; S.char.y = free.y + 0.5;
+    trackPresence();
+    setRoomUI(room);
+    if (!S.stats.rooms) S.stats.rooms = {};
+    if (!S.stats.rooms[room]) { S.stats.rooms[room] = true; checkAll(); }
+    questEvent("room", room);
+    toast(ROOMS[room].emoji + " Willkommen in: " + ROOMS[room].name);
+    saveNow();
+  } catch (e) {
+    toast("Raumwechsel fehlgeschlagen – keine Verbindung?", "warn");
+  } finally {
+    switching = false;
+  }
+}
+function openRoomMenu(x, y) {
+  const entries = Object.keys(ROOMS)
+    .filter(id => id !== S.room)
+    .map(id => ({ label: ROOMS[id].emoji + " " + ROOMS[id].name, cb: () => { hideMenu(); switchRoom(id); } }));
+  showMenu(x, y, entries);
+}
+/* Tür an der linken Wand (Segment y=6.4..8.2) */
+function doorHit(sx, sy) {
+  const p1 = isoPt(0, 6.4, 0), p2 = isoPt(0, 8.2, 0);
+  const minX = Math.min(p1.x, p2.x), maxX = Math.max(p1.x, p2.x);
+  const maxY = Math.max(p1.y, p2.y), minY = Math.min(p1.y, p2.y) - 78;
+  return sx >= minX && sx <= maxX && sy >= minY && sy <= maxY;
 }
 
 /* ================= Aktionen ================= */
@@ -389,7 +465,9 @@ function completeAction() {
     const pay = 40 + 15 * S.level; S.money += pay;
     fl(P.x, P.y - 92 - dy, "+" + pay + " 💰", "#f4c95d"); dy += 15;
     trackStat("works");
+    questEvent("work");
   }
+  questEvent("action");
   action = null;
   gainXp(def.xp, dy);
   uiNeeds(); saveNow();
@@ -422,6 +500,7 @@ async function placeSelection(x, y) {
       const p = isoPt(x + c.w / 2, y + c.d / 2, 40);
       fl(p.x, p.y, "−" + c.price + " 💰", "#f4c95d");
       trackStat("placed");
+      questEvent("place");
       gainXp(5, 0);
     }
     toast(c.emoji + " " + c.name + " platziert!");
@@ -468,7 +547,7 @@ function openLiveMenu(f, x, y) {
 }
 function openBuyMenu(f, x, y) {
   const c = CAT[f.type];
-  if (f.placed_by !== playerId) {
+  if (f.placed_by !== activeId()) {
     const who = f.placed_by ? (f.placed_by_name || "einem anderen Spieler") : "Hub";
     showMenu(x, y, [{ label: "🔒 " + c.emoji + " " + c.name, sub: "Gehört: " + who + " – nur eigene Möbel änderbar", cb: () => hideMenu() }]);
     return;
@@ -521,6 +600,7 @@ export function initInput() {
     if (e.button === 2) return;
     hideMenu();
     const p = canvasPos(e), cell = screenToCell(p.x, p.y);
+    if (mode === "live" && !selection && doorHit(p.x, p.y)) { openRoomMenu(p.cx, p.cy); return; }
     if (mode === "buy") {
       if (selection) {
         if (!hoverTile) return;
@@ -540,10 +620,20 @@ export function initInput() {
   document.addEventListener("pointerdown", e => { if (!menuEl.contains(e.target) && e.target !== cv) hideMenu(); });
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") { cancelSelection(); hideMenu(); closeOverlaysOnEsc(); }
-    if ((e.key === "b" || e.key === "B") && !chatHasFocus() &&
-      document.activeElement.tagName !== "INPUT") setMode(mode === "live" ? "buy" : "live");
+    const typing = chatHasFocus() || document.activeElement.tagName === "INPUT";
+    if ((e.key === "b" || e.key === "B") && !typing) setMode(mode === "live" ? "buy" : "live");
+    if (!typing && e.key >= "1" && e.key <= "6") sendMyEmote(EMOTES[Number(e.key) - 1]);
   });
   document.getElementById("modeBtn").onclick = () => setMode(mode === "live" ? "buy" : "live");
+  document.getElementById("roomBtn").onclick = () => openRoomMenu(14, 14);
+  // Emote-Leiste
+  const bar = document.getElementById("emoteBar");
+  EMOTES.forEach(e => {
+    const b = document.createElement("button");
+    b.textContent = e; b.title = "Emote senden";
+    b.onclick = () => sendMyEmote(e);
+    bar.appendChild(b);
+  });
 }
 
 /* ================= Update ================= */

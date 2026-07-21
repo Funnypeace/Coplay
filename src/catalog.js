@@ -38,3 +38,31 @@ export const CAT = {
 export const SHIRTS = ["#3fb8a0", "#e36767", "#9a6fe0", "#e8a13f", "#5f8fe8"];
 
 export function xpNeed(l) { return 100 + (l - 1) * 120; }
+
+/* Räume mit eigenem Look */
+export const ROOMS = {
+  lounge: {
+    name: "Lounge", emoji: "🛋️",
+    bg: ["#1d2438", "#242c44"],
+    floor: ["#c2995f", "#cba368"],
+    wallL: ["#5b688a", "#5f6c90"], wallR: ["#6a78a0", "#6e7ca4"],
+    stripL: "#46516e", stripR: "#525e7e",
+    glassDay: "#aee0ff", glassNight: "#26345e",
+  },
+  garten: {
+    name: "Garten", emoji: "🌿",
+    bg: ["#1c2b38", "#223447"],
+    floor: ["#7fae6a", "#8aba74"],
+    wallL: ["#4e7d4d", "#528251"], wallR: ["#5a8f58", "#5e935c"],
+    stripL: "#3c6340", stripR: "#456e49",
+    glassDay: "#cfe8ff", glassNight: "#22304f",
+  },
+  arcade: {
+    name: "Arcade", emoji: "🕹️",
+    bg: ["#181c30", "#20243c"],
+    floor: ["#4a4664", "#514d6e"],
+    wallL: ["#3c3a5e", "#403e63"], wallR: ["#474368", "#4b476d"],
+    stripL: "#2e2c48", stripR: "#343055",
+    glassDay: "#9fb8e8", glassNight: "#1e2746",
+  },
+};

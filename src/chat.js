@@ -1,8 +1,9 @@
 /* Globaler Chat: Panel rechts + Senden über Supabase */
-import { S, playerId } from "./state.js";
+import { S, activeId } from "./state.js";
 import { sendChat, setBubble, connected } from "./net.js";
 import { toast } from "./ui.js";
 import { trackStat } from "./achievements.js";
+import { questEvent } from "./quests.js";
 
 const msgsEl = document.getElementById("chatMsgs");
 const formEl = document.getElementById("chatForm");
@@ -26,7 +27,7 @@ export function addChatMessage(m) {
   }
   const div = document.createElement("div");
   div.className = "m";
-  const who = m.player_id === playerId ? (m.name || "Ich") : (m.name || "Gast");
+  const who = m.player_id === activeId() ? (m.name || "Ich") : (m.name || "Gast");
   div.innerHTML = '<span class="n" style="color:' + esc(m.color || "#9aa7c4") + '">' + esc(who) +
     ":</span> <span class=\"t\">" + esc(m.text) + "</span>";
   msgsEl.appendChild(div);
@@ -57,6 +58,7 @@ export function initChat() {
       const row = await sendChat(text);
       addChatMessage(row);
       trackStat("msgs");
+      questEvent("msg");
     } catch (err) {
       toast("Nachricht konnte nicht gesendet werden.", "warn");
       inputEl.value = text;

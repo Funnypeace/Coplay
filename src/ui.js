@@ -1,6 +1,6 @@
 /* DOM-UI: Topbar, Bedürfnisse, Shop, Menüs, Overlays, Toasts */
-import { CAT, NEED_KEYS, NEED_META, SHIRTS, MAX_LEVEL, xpNeed } from "./catalog.js";
-import { S, avgNeeds, saveNow } from "./state.js";
+import { CAT, NEED_KEYS, NEED_META, SHIRTS, MAX_LEVEL, xpNeed, ROOMS } from "./catalog.js";
+import { S, account, avgNeeds, saveNow } from "./state.js";
 import { clamp } from "./draw.js";
 
 const moneyEl = document.getElementById("money"), lvlBadge = document.getElementById("lvlBadge"),
@@ -36,6 +36,10 @@ export function uiTop() {
 export function setOnline(count, ok) {
   onlineBadge.textContent = (ok ? "🟢 " : "🔴 ") + count + " online";
   onlineBadge.classList.toggle("off", !ok);
+}
+export function setRoomUI(room) {
+  const r = ROOMS[room];
+  if (r) document.getElementById("roomBtn").textContent = "🚪 " + r.emoji + " " + r.name;
 }
 
 export function buildNeedsUI() {
@@ -112,7 +116,25 @@ export function hideMenu() { menuEl.style.display = "none"; }
 
 /* ---------- Overlays ---------- */
 let pickShirt = SHIRTS[0];
-export function initOverlays({ onProfileSave, onReset }) {
+let overlayMode = "login"; // "login" | "profil"
+
+export function setAuthError(code) {
+  const map = {
+    wrong_password: "Falsches Hub-Passwort!",
+    bad_username: "Name bitte mit 2–14 Zeichen.",
+    bad_password: "Passwort bitte eingeben (mind. 2 Zeichen).",
+    network: "Keine Verbindung – später nochmal versuchen (oder als Gast spielen).",
+    "": "",
+  };
+  document.getElementById("authError").textContent = map[code] ?? code ?? "";
+}
+export function setStartBusy(busy) {
+  const b = document.getElementById("startBtn");
+  b.disabled = busy;
+  b.textContent = busy ? "Einen Moment …" : (overlayMode === "login" ? "Anmelden / Registrieren" : "Speichern");
+}
+
+export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout, onReset }) {
   const swatchesEl = document.getElementById("swatches"), nameInput = document.getElementById("nameInput");
   pickShirt = S.shirt;
   SHIRTS.forEach(col => {
@@ -125,33 +147,64 @@ export function initOverlays({ onProfileSave, onReset }) {
     swatchesEl.appendChild(d);
   });
   document.getElementById("startBtn").onclick = () => {
+    const name = (nameInput.value.trim() || "").slice(0, 14);
+    S.shirt = pickShirt;
+    if (overlayMode === "login") {
+      setAuthError("");
+      onLogin && onLogin(name, document.getElementById("pwInput").value);
+    } else {
+      if (!account.id && name) S.name = name;
+      S.seenIntro = true;
+      startOverlay.classList.add("hidden");
+      saveNow();
+      onProfileSave && onProfileSave();
+    }
+  };
+  document.getElementById("guestBtn").onclick = () => {
     const name = (nameInput.value.trim() || "Gast").slice(0, 14);
     S.name = name; S.shirt = pickShirt; S.seenIntro = true;
     startOverlay.classList.add("hidden");
     saveNow();
-    onProfileSave && onProfileSave();
+    onGuest && onGuest();
   };
+  document.getElementById("logoutBtn").onclick = () => { onLogout && onLogout(); };
   document.getElementById("helpBtn").onclick = () => helpOverlay.classList.remove("hidden");
   document.getElementById("helpClose").onclick = () => helpOverlay.classList.add("hidden");
   document.getElementById("achClose").onclick = () => achOverlay.classList.add("hidden");
-  document.getElementById("profileBtn").onclick = () => openStartOverlay(true);
+  document.getElementById("questClose").onclick = () => document.getElementById("questOverlay").classList.add("hidden");
+  document.getElementById("profileBtn").onclick = () => openStartOverlay("profil");
   document.getElementById("resetBtn").onclick = () => {
     if (confirm("Deinen lokalen Spielstand wirklich löschen und neu starten? (Chat & Hub-Möbel bleiben erhalten)")) {
       onReset && onReset();
     }
   };
 }
-export function openStartOverlay(isEdit) {
+
+export function openStartOverlay(mode) {
+  overlayMode = mode === "profil" ? "profil" : "login";
+  const login = overlayMode === "login";
   const nameInput = document.getElementById("nameInput");
-  nameInput.value = S.name || "";
-  document.getElementById("startBtn").textContent = isEdit ? "Speichern" : "Los geht's!";
+  nameInput.value = account.username || S.name || "";
+  nameInput.disabled = !login && !!account.id;
+  document.getElementById("startTitle").textContent = login ? "🏡 Willkommen im Coplay-Hub!" : "👤 Profil";
+  document.getElementById("startIntro").textContent = login
+    ? "Melde dich mit Namen und Hub-Passwort an – dein Fortschritt wird in der Cloud gespeichert und ist auf jedem Gerät da. Neue Namen werden automatisch registriert."
+    : (account.id ? "Angemeldet als " + account.username + " – Fortschritt liegt in der Cloud." : "Du spielst als Gast – Fortschritt nur auf diesem Gerät.");
+  document.getElementById("pwRow").classList.toggle("hidden", !login);
+  document.getElementById("guestBtn").classList.toggle("hidden", !login);
+  document.getElementById("logoutBtn").classList.toggle("hidden", !(overlayMode === "profil" && account.id));
+  setAuthError("");
+  setStartBusy(false);
   document.querySelectorAll(".sw").forEach((el, i) => el.classList.toggle("sel", SHIRTS[i] === S.shirt));
   pickShirt = S.shirt;
   startOverlay.classList.remove("hidden");
-  nameInput.focus();
+  if (login) nameInput.focus();
 }
+export function closeStartOverlay() { startOverlay.classList.add("hidden"); }
 export function openAchOverlay() { achOverlay.classList.remove("hidden"); }
+export function openQuestOverlay() { document.getElementById("questOverlay").classList.remove("hidden"); }
 export function closeOverlaysOnEsc() {
   helpOverlay.classList.add("hidden");
   achOverlay.classList.add("hidden");
+  document.getElementById("questOverlay").classList.add("hidden");
 }
