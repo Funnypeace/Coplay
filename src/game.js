@@ -157,6 +157,32 @@ function drawFurniture(f, t, active) {
       line({ x: p.x, y: p.y - 3 }, { x: p.x, y: p.y - 46 }, "#4a5468", 3);
       poly([[p.x - 14, p.y - 44], [p.x + 14, p.y - 44], [p.x + 8, p.y - 62], [p.x - 8, p.y - 62]], "#e8d8a8", "#c4b58a", 1.5);
       break; }
+    case "kleiderschrank": {
+      boxIso(x + 0.08, y + 0.08, 0.84, 0.84, 68, 0, "#6b4a32");
+      const Pa = southPt(x + 0.08, y + 0.08, 0.84, 0.84, 0.5, 68), Pb = southPt(x + 0.08, y + 0.08, 0.84, 0.84, 0.5, 6);
+      line(Pa, Pb, "#4a3220", 2);
+      const h1 = southPt(x + 0.08, y + 0.08, 0.84, 0.84, 0.4, 34), h2 = southPt(x + 0.08, y + 0.08, 0.84, 0.84, 0.6, 34);
+      circ(h1.x, h1.y, 2, "#d8b96a"); circ(h2.x, h2.y, 2, "#d8b96a");
+      break; }
+    case "sitzsack": {
+      const p = isoPt(x + 0.5, y + 0.5, 0);
+      ell(p.x, p.y - 1, 15, 7, "rgba(0,0,0,.25)");
+      ell(p.x, p.y - 14, 14, 13, "#9a6fe0");
+      ell(p.x - 4, p.y - 21, 6, 5, "#8558c8");
+      if (active) txt("😌", p.x, p.y - 30, 13, "#fff");
+      break; }
+    case "kamin": {
+      boxIso(x + 0.05, y + 0.05, 0.9, 0.9, 46, 0, "#7a5040");
+      const A = isoPt(x + 0.24, y + 0.24, 10), B = isoPt(x + 0.76, y + 0.24, 10), C = isoPt(x + 0.76, y + 0.76, 10), D = isoPt(x + 0.24, y + 0.76, 10);
+      poly([[A.x, A.y], [B.x, B.y], [C.x, C.y], [D.x, D.y]], active ? "#c9531f" : "#5a2a18");
+      if (active) { const p = isoPt(x + 0.5, y + 0.5, 22); txt("🔥", p.x, p.y - Math.sin(t * 3) * 3, 15, "#ffb15a"); }
+      break; }
+    case "spiegel": {
+      boxIso(x + 0.4, y + 0.4, 0.2, 0.2, 3, 0, "#3a4256");
+      const p = isoPt(x + 0.5, y + 0.5, 3);
+      ctx.beginPath(); ctx.ellipse(p.x, p.y - 46, 10, 22, 0, 0, 7);
+      ctx.fillStyle = "#cfe0f0"; ctx.fill(); ctx.strokeStyle = "#8a94ac"; ctx.lineWidth = 2; ctx.stroke();
+      break; }
     case "sofa": {
       boxIso(x, y, 2, 1, 14, 0, "#c46a6a");
       boxIso(x, y, 2, 0.32, 16, 14, "#b35f5f");
@@ -196,6 +222,19 @@ function drawFurniture(f, t, active) {
         poly([[p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y], [p4.x, p4.y]], b[4]);
       });
       break; }
+    case "kaffeemaschine": {
+      boxIso(x + 0.25, y + 0.25, 0.5, 0.5, 30, 0, "#2c2c34");
+      const p = isoPt(x + 0.5, y + 0.5, 30);
+      ell(p.x, p.y, 5, 2.5, "#1a1a20");
+      if (active) txt("☕", p.x, p.y - 14 - Math.sin(t * 2) * 2, 12, "#e8c9a0");
+      break; }
+    case "dartscheibe": {
+      boxIso(x + 0.42, y + 0.42, 0.16, 0.16, 3, 0, "#3a4256");
+      const p = isoPt(x + 0.5, y + 0.5, 55);
+      circ(p.x, p.y, 12, "#e9e5db"); circ(p.x, p.y, 9, "#c46a6a");
+      circ(p.x, p.y, 6, "#e9e5db"); circ(p.x, p.y, 3, "#2c2c34");
+      if (active) txt("🎯", p.x + 12, p.y - 8, 12, "#fff");
+      break; }
     case "stereo": {
       boxIso(x + 0.15, y + 0.2, 0.7, 0.6, 20, 0, "#2e3850");
       const L = (u, z) => southPt(x + 0.15, y + 0.2, 0.7, 0.6, u, z);
@@ -206,12 +245,50 @@ function drawFurniture(f, t, active) {
       });
       if (active) { const p = isoPt(x + 0.5, y + 0.5, 34); txt("🎵", p.x + Math.sin(t * 4) * 6, p.y - Math.abs(Math.sin(t * 3)) * 8, 12, "#9fd8cc"); }
       break; }
+    case "klavier": {
+      boxIso(x + 0.05, y + 0.1, 0.12, 0.12, 20, 0, "#241a14"); boxIso(x + 1.5, y + 0.1, 0.12, 0.12, 20, 0, "#241a14");
+      boxIso(x + 0.05, y + 0.7, 0.12, 0.12, 20, 0, "#241a14"); boxIso(x + 1.5, y + 0.7, 0.12, 0.12, 20, 0, "#241a14");
+      boxIso(x, y, 1.7, 0.9, 8, 20, "#1c130f");
+      const Pa = southPt(x, y, 1.7, 0.9, 0.1, 26), Pb = southPt(x, y, 1.7, 0.9, 0.9, 26),
+        Pc = southPt(x, y, 1.7, 0.9, 0.9, 20), Pd = southPt(x, y, 1.7, 0.9, 0.1, 20);
+      poly([[Pa.x, Pa.y], [Pb.x, Pb.y], [Pc.x, Pc.y], [Pd.x, Pd.y]], "#e9e5db");
+      if (active) { const p = isoPt(x + 0.85, y + 0.45, 40); txt("🎹", p.x, p.y - Math.sin(t * 3) * 4, 13, "#c9b8f0"); }
+      break; }
+    case "aquarium": {
+      boxIso(x + 0.1, y + 0.15, 0.8, 0.7, 6, 0, "#3a4256");
+      let a = isoPt(x + 0.1, y + 0.15, 6), b = isoPt(x + 0.9, y + 0.15, 6);
+      poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 50], [a.x, a.y - 50]], "rgba(120,200,230,.5)", "#bfe6f5", 1.5);
+      a = isoPt(x + 0.1, y + 0.85, 6); b = isoPt(x + 0.1, y + 0.15, 6);
+      poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 50], [a.x, a.y - 50]], "rgba(120,200,230,.5)", "#bfe6f5", 1.5);
+      const p = isoPt(x + 0.5, y + 0.5, 30);
+      txt("🐠", p.x + Math.sin(t * 1.5) * 8, p.y - Math.abs(Math.sin(t)) * 4, 13, "#fff");
+      break; }
     case "badewanne": {
       boxIso(x, y, 2, 1, 18, 0, "#e9edf3");
       const A = isoPt(x + 0.16, y + 0.18, 18), B = isoPt(x + 1.84, y + 0.18, 18), C = isoPt(x + 1.84, y + 0.82, 18), D = isoPt(x + 0.16, y + 0.82, 18);
       poly([[A.x, A.y], [B.x, B.y], [C.x, C.y], [D.x, D.y]], "#7fb8e0");
       if (active) { for (let i = 0; i < 4; i++) { const p = isoPt(x + 0.4 + i * 0.4, y + 0.5, 18); circ(p.x, p.y - ((t * 14 + i * 8) % 10), 2.2, "rgba(255,255,255,.8)"); } }
       const f2 = isoPt(x + 1.84, y + 0.5, 18); line({ x: f2.x, y: f2.y - 2 }, { x: f2.x + 6, y: f2.y - 12 }, "#aab3c6", 3); circ(f2.x + 6, f2.y - 13, 2.5, "#aab3c6");
+      break; }
+    case "whirlpool": {
+      boxIso(x, y, 2, 2, 20, 0, "#cfa46a");
+      const A = isoPt(x + 0.18, y + 0.18, 20), B = isoPt(x + 1.82, y + 0.18, 20), C = isoPt(x + 1.82, y + 1.82, 20), D = isoPt(x + 0.18, y + 1.82, 20);
+      poly([[A.x, A.y], [B.x, B.y], [C.x, C.y], [D.x, D.y]], "#6fb8d8");
+      if (active) {
+        for (let i = 0; i < 6; i++) {
+          const p = isoPt(x + 0.4 + (i % 3) * 0.6, y + 0.4 + Math.floor(i / 3) * 0.9, 20);
+          circ(p.x, p.y - ((t * 16 + i * 7) % 12), 2.4, "rgba(255,255,255,.85)");
+        }
+      }
+      break; }
+    case "heimkino": {
+      boxIso(x + 0.05, y + 0.4, 1.9, 0.14, 40, 10, "#151a24");
+      const Pa = southPt(x + 0.05, y + 0.4, 1.9, 0.14, 0.04, 48), Pb = southPt(x + 0.05, y + 0.4, 1.9, 0.14, 0.96, 48),
+        Pc = southPt(x + 0.05, y + 0.4, 1.9, 0.14, 0.96, 14), Pd = southPt(x + 0.05, y + 0.4, 1.9, 0.14, 0.04, 14);
+      let col = "#1c2436";
+      if (active) { const ph = Math.floor(t * 6) % 3; col = ["#6f9ce0", "#8fb2e8", "#7fd0c0"][ph]; }
+      poly([[Pa.x, Pa.y], [Pb.x, Pb.y], [Pc.x, Pc.y], [Pd.x, Pd.y]], col);
+      boxIso(x + 0.02, y + 0.42, 0.12, 0.16, 20, 0, "#2a2f3a"); boxIso(x + 1.86, y + 0.42, 0.12, 0.16, 20, 0, "#2a2f3a");
       break; }
   }
 }

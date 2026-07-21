@@ -14,6 +14,7 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
 - **Tagesquests**: jeden Tag 3 Aufgaben mit Taler- und XP-Belohnung
 - **Gemeinsames Bauen**: Platzierte Möbel sehen alle sofort; eigene Möbel kann man verschieben/verkaufen, Hub-Möbel sind fest
 - **Bedürfnisse & Aktionen**: Essen, Schlafen, Duschen, Arbeiten, Fernsehen … wie im Original
+- **24 Möbelstücke**: von Bett bis Whirlpool, Klavier, Dartscheibe, Kamin, Heimkino und mehr
 - **5 Level**: XP durch Aktionen, jedes Level schaltet neue Möbel im Shop frei (Level 5 = Max)
 - **Erfolge**: 12 freischaltbare Erfolge (Chat, Bauen, Arbeiten, Haustier, Räume, Quests …)
 - **Haustier**: Katze, Hund oder Hase adoptieren – folgt dir durch den Hub, will Futter und Spiel; ein glückliches Haustier gibt +10 % XP
