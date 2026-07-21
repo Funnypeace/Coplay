@@ -41,6 +41,12 @@ export function setRoomUI(room) {
   const r = ROOMS[room];
   if (r) document.getElementById("roomBtn").textContent = "🚪 " + r.emoji + " " + r.name;
 }
+/* Topbar-Knopf: "🔑 Login" für Gäste, Name für eingeloggte Accounts */
+export function updateProfileBtn() {
+  const btn = document.getElementById("profileBtn");
+  if (!btn) return;
+  btn.textContent = account.id ? "👤 " + (account.username || "Profil") : "🔑 Login";
+}
 
 export function buildNeedsUI() {
   needsList.innerHTML = "";
@@ -172,12 +178,13 @@ export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout, onRese
   document.getElementById("helpClose").onclick = () => helpOverlay.classList.add("hidden");
   document.getElementById("achClose").onclick = () => achOverlay.classList.add("hidden");
   document.getElementById("questClose").onclick = () => document.getElementById("questOverlay").classList.add("hidden");
-  document.getElementById("profileBtn").onclick = () => openStartOverlay("profil");
+  document.getElementById("profileBtn").onclick = () => openStartOverlay(account.id ? "profil" : "login");
   document.getElementById("resetBtn").onclick = () => {
     if (confirm("Deinen lokalen Spielstand wirklich löschen und neu starten? (Chat & Hub-Möbel bleiben erhalten)")) {
       onReset && onReset();
     }
   };
+  updateProfileBtn();
 }
 
 export function openStartOverlay(mode) {
@@ -188,7 +195,7 @@ export function openStartOverlay(mode) {
   nameInput.disabled = !login && !!account.id;
   document.getElementById("startTitle").textContent = login ? "🏡 Willkommen im Coplay-Hub!" : "👤 Profil";
   document.getElementById("startIntro").textContent = login
-    ? "Melde dich mit Namen und Hub-Passwort an – dein Fortschritt wird in der Cloud gespeichert und ist auf jedem Gerät da. Neue Namen werden automatisch registriert."
+    ? "Melde dich mit Namen und Hub-Passwort an – dein bisheriger Fortschritt wird in die Cloud übernommen und ist dann auf jedem Gerät da. Neue Namen werden automatisch registriert."
     : (account.id ? "Angemeldet als " + account.username + " – Fortschritt liegt in der Cloud." : "Du spielst als Gast – Fortschritt nur auf diesem Gerät.");
   document.getElementById("pwRow").classList.toggle("hidden", !login);
   document.getElementById("guestBtn").classList.toggle("hidden", !login);

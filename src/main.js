@@ -5,8 +5,8 @@ import {
   initNet, joinRoom, joinedRoom, loadWorld, loadChat, trackPresence, remote, connected,
 } from "./net.js";
 import {
-  toast, uiTop, buildNeedsUI, uiNeeds, initOverlays, openStartOverlay, closeStartOverlay,
-  openAchOverlay, openQuestOverlay, setOnline, setRoomUI, setAuthError, setStartBusy,
+  toast, uiTop, buildNeedsUI, uiNeeds, initOverlays, closeStartOverlay,
+  openAchOverlay, openQuestOverlay, setOnline, setRoomUI, setAuthError, setStartBusy, updateProfileBtn,
 } from "./ui.js";
 import { initChat, addChatMessage, addSysMessage } from "./chat.js";
 import { renderAchList, checkAll, trackStatMax } from "./achievements.js";
@@ -31,6 +31,13 @@ async function boot() {
   loadSave();
   // Auto-Login mit gespeichertem Token (lädt ggf. Cloud-Spielstand inkl. Raum)
   await tryTokenLogin();
+
+  // Kein Account gefunden: sofort als Gast einsteigen, kein blockierendes Overlay.
+  // Login bleibt jederzeit über den Knopf oben rechts erreichbar (Fortschritt wandert dann in die Cloud).
+  const firstVisit = !S.seenIntro;
+  if (!account.id && !S.name) S.name = "Gast" + Math.floor(1000 + Math.random() * 9000);
+  if (firstVisit) { S.seenIntro = true; saveNow(); }
+
   initQuests();
   buildNeedsUI();
   refreshAllUi();
@@ -45,6 +52,7 @@ async function boot() {
       setStartBusy(false);
       if (!res.ok) { setAuthError(res.error); return; }
       closeStartOverlay();
+      updateProfileBtn();
       initQuests();
       refreshAllUi();
       toast(res.isNew
@@ -75,7 +83,7 @@ async function boot() {
   });
   document.getElementById("achBtn").onclick = () => { renderAchList(); openAchOverlay(); };
   document.getElementById("questBtn").onclick = () => { renderQuestList(); openQuestOverlay(); };
-  if (!S.seenIntro && !account.id) openStartOverlay("login");
+  updateProfileBtn();
 
   startLoop();
 
@@ -134,6 +142,10 @@ async function boot() {
   if (!S.stats.rooms) S.stats.rooms = {};
   if (!S.stats.rooms[S.room]) S.stats.rooms[S.room] = true;
   questEvent("room", S.room);
+
+  if (firstVisit && !account.id) {
+    toast("Willkommen im Hub, " + S.name + "! Melde dich oben rechts (🔑 Login) an, um deinen Fortschritt zu sichern.");
+  }
 
   checkAll();
   startCloudSync();
