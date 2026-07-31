@@ -10,9 +10,8 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
 - **Einfache Accounts + Cloud-Save**: Name + eigenes Passwort (neuer Name = neues Konto), Fortschritt liegt in der Cloud und ist auf jedem Gerät da; Gast-Modus (nur lokal) weiterhin möglich
 - **Admin-Konto** (`Funnypeace`): kann jedes Möbelstück im Hub verschieben/löschen (nicht nur
   eigene), jede Chat-Nachricht einzeln löschen oder den ganzen Chat leeren, und über
-  „🌍 Welt-Reset" die komplette Möbel-Einrichtung in allen Räumen zurücksetzen – das „Neu
-  starten" der normalen Spieler setzt dagegen ausschließlich den eigenen Fortschritt zurück
-  und rührt Chat/Hub-Möbel nie an
+  „🌍 Welt-Reset" die komplette Möbel-Einrichtung in allen Räumen zurücksetzen – nur der
+  Admin kann die geteilte Welt zurücksetzen, normale Spieler haben dafür keinen Knopf
 - **3 Räume, jeweils anders groß**: Lounge 🛋️ (14×14, Zuhause-Basis), Garten 🌿 (12×12,
   Wellness) und Arcade 🕹️ (10×10, kompakter Entertainment-Raum) – eigener Look, eigene
   Einrichtung, eigenes Raster; Wechsel über die Tür oder den 🚪-Knopf
@@ -22,6 +21,10 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
   schwebendes Symbol; dieselbe Tanz-Animation läuft auch bei der echten „Tanzen"-Aktion an
   der Stereoanlage
 - **Tagesquests**: jeden Tag 3 Aufgaben mit Taler- und XP-Belohnung
+- **Aktionen stapeln**: Mehrere Möbelstücke nacheinander anklicken (z. B. Bett → Kühlschrank →
+  Fernseher) – bis zu 5 Aktionen werden automatisch der Reihe nach abgearbeitet, mit kleiner
+  Warteschlangen-Anzeige im Spiel
+- **🆕 Neuigkeiten-Overlay**: einfache, laienverständliche Liste der letzten Neuerungen direkt in der App
 - **Gemeinsames Bauen**: Platzierte Möbel sehen alle sofort; eigene Möbel kann man verschieben/verkaufen, Hub-Möbel sind fest
 - **Bedürfnisse & Aktionen**: Essen, Schlafen, Duschen, Arbeiten, Fernsehen … wie im Original
 - **44 Möbelstücke**: von Bett über Whirlpool, Klavier und Heimkino bis Billardtisch, Sauna und Laufband

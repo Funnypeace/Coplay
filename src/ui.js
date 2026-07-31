@@ -10,7 +10,7 @@ const moneyEl = document.getElementById("money"), lvlBadge = document.getElement
   modeBtn = document.getElementById("modeBtn"), toastsEl = document.getElementById("toasts"),
   onlineBadge = document.getElementById("onlineBadge"),
   startOverlay = document.getElementById("startOverlay"), helpOverlay = document.getElementById("helpOverlay"),
-  achOverlay = document.getElementById("achOverlay");
+  achOverlay = document.getElementById("achOverlay"), changelogOverlay = document.getElementById("changelogOverlay");
 export const menuEl = document.getElementById("menu");
 
 export function toast(msg, type) {
@@ -186,6 +186,8 @@ export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout }) {
   document.getElementById("helpClose").onclick = () => helpOverlay.classList.add("hidden");
   document.getElementById("achClose").onclick = () => achOverlay.classList.add("hidden");
   document.getElementById("questClose").onclick = () => document.getElementById("questOverlay").classList.add("hidden");
+  document.getElementById("changelogBtn").onclick = () => changelogOverlay.classList.remove("hidden");
+  document.getElementById("changelogClose").onclick = () => changelogOverlay.classList.add("hidden");
   document.getElementById("profileBtn").onclick = () => openStartOverlay(account.id ? "profil" : "login");
   updateProfileBtn();
   updateAdminUI();
@@ -218,4 +220,5 @@ export function closeOverlaysOnEsc() {
   helpOverlay.classList.add("hidden");
   achOverlay.classList.add("hidden");
   document.getElementById("questOverlay").classList.add("hidden");
+  changelogOverlay.classList.add("hidden");
 }

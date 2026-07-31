@@ -30,6 +30,8 @@ let action = null;             // {fid, def, t, dur}
 let walkPhase = 0, lastWarn = 0, autosaveT = 0, needsUiT = 0;
 let placing = false;
 let wasMoving = false;
+const MAX_QUEUE = 5;
+let queue = [];                // Array<fid>: weitere gestapelte Aktionen, wird nach und nach abgearbeitet
 
 /* ================= Tag/Nacht (synchron über Uhrzeit) ================= */
 function dayInfo() {
@@ -534,6 +536,16 @@ export function render(t, dt) {
   const hh = Math.floor(day.hour), mm = Math.floor((day.hour % 1) * 60);
   txt((day.night ? "🌙 " : "☀️ ") + String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"), 70, 28, 14, "#cfd8ec", "left");
   txt(theme().emoji + " " + theme().name, 70, 48, 12.5, "#9aa7c4", "left");
+  // Aktions-Warteschlange
+  if (action || pendingAction || queue.length) {
+    const items = [];
+    const curFid = action ? action.fid : (pendingAction ? pendingAction.fid : null);
+    if (curFid != null) { const f = W.findFurniture(curFid); if (f) items.push({ emoji: CAT[f.type].emoji, active: true }); }
+    queue.forEach(fid => { const f = W.findFurniture(fid); if (f) items.push({ emoji: CAT[f.type].emoji, active: false }); });
+    let qx = 70;
+    txt("📋", qx, 66, 12.5, "#8b91a1", "left"); qx += 15;
+    items.slice(0, 6).forEach(it => { txt(it.emoji, qx, 67, 15, it.active ? "#e7cb96" : "#8b91a1", "left"); qx += 20; });
+  }
 }
 
 /* ================= Emotes ================= */
@@ -602,25 +614,49 @@ function walkTo(tx, ty) {
   trackStat("moves");
   return true;
 }
+/* Ist der Charakter gerade unterwegs zu einer Aktion oder führt sie aus? */
+function isBusy() { return !!action || !!pendingAction; }
+
 function useFurniture(f) {
   const def = CAT[f.type].act;
   if (!def) return;
+  if (isBusy()) {
+    if (queue.length >= MAX_QUEUE) { toast("Warteschlange voll (max. " + MAX_QUEUE + ")", "warn"); return; }
+    queue.push(f.id);
+    toast("➕ " + CAT[f.type].emoji + " " + def.label + " eingereiht (" + queue.length + "/" + MAX_QUEUE + ")");
+    return;
+  }
+  beginTask(f);
+}
+/* Läuft zum Möbelstück (oder startet sofort, falls schon davor) */
+function beginTask(f) {
   const cc = W.charCell(), tiles = W.approachTiles(f);
-  if (!tiles.length) { toast("Kein Platz vor dem Möbelstück frei!", "warn"); return; }
+  if (!tiles.length) { toast("Kein Platz vor dem Möbelstück frei!", "warn"); advanceQueue(); return; }
   if (tiles.some(p => p.x === cc.x && p.y === cc.y)) { charPath = []; startAction(f.id); return; }
   const r = W.bfs(cc); let best = null;
   tiles.forEach(p => { const d = r.dist[p.y][p.x]; if (d !== Infinity && (best === null || d < best.d)) best = { p, d }; });
-  if (!best) { toast("Da komme ich nicht hin!"); return; }
+  if (!best) { toast("Da komme ich nicht hin!", "warn"); advanceQueue(); return; }
   charPath = W.reconstruct(r.parent, cc, best.p);
   action = null; pendingAction = { fid: f.id };
 }
 function startAction(fid) {
   const f = W.findFurniture(fid);
-  if (!f) return;
+  if (!f) { advanceQueue(); return; }
   const def = CAT[f.type].act;
-  if (def.work && S.needs.energie < 15) { toast("Zu müde zum Arbeiten – erst schlafen! 😴", "warn"); return; }
+  if (def.work && S.needs.energie < 15) { toast("Zu müde zum Arbeiten – erst schlafen! 😴", "warn"); advanceQueue(); return; }
   action = { fid, def, t: 0, dur: def.dur };
   charPath = []; pendingAction = null;
+}
+/* Nimmt die nächste gestapelte Aktion aus der Warteschlange, falls vorhanden */
+function advanceQueue() {
+  while (queue.length > 0) {
+    const fid = queue.shift();
+    const f = W.findFurniture(fid);
+    if (f) { beginTask(f); return; }
+  }
+}
+function clearQueue() {
+  if (queue.length) { queue = []; toast("🗑️ Warteschlange geleert."); }
 }
 function completeAction() {
   const def = action.def, P = charPx(); let dy = 0;
@@ -638,12 +674,16 @@ function completeAction() {
   action = null;
   gainXp(def.xp, dy);
   uiNeeds(); saveNow();
+  advanceQueue();
 }
 
 /* Wird aus main.js gerufen, wenn ein Möbel remote gelöscht wurde */
 export function onFurnitureRemoved(id) {
-  if (action && action.fid === id) { action = null; toast("Das Möbelstück ist gerade verschwunden!", "warn"); }
-  if (pendingAction && pendingAction.fid === id) pendingAction = null;
+  queue = queue.filter(q => q !== id);
+  if (action && action.fid === id) {
+    action = null; toast("Das Möbelstück ist gerade verschwunden!", "warn"); advanceQueue(); return;
+  }
+  if (pendingAction && pendingAction.fid === id) { pendingAction = null; advanceQueue(); }
 }
 
 /* ================= Kaufen / Verkaufen / Verschieben ================= */
@@ -722,7 +762,8 @@ function effectsStr(def) {
 function openLiveMenu(f, x, y) {
   const c = CAT[f.type];
   if (!c.act) { toast(c.emoji + " " + c.name + " – sieht hübsch aus!"); return; }
-  showMenu(x, y, [{ label: c.emoji + " " + c.act.label, sub: effectsStr(c.act), cb: () => { hideMenu(); useFurniture(f); } }]);
+  const label = isBusy() ? "➕ Einreihen: " + c.act.label : c.emoji + " " + c.act.label;
+  showMenu(x, y, [{ label, sub: effectsStr(c.act), cb: () => { hideMenu(); useFurniture(f); } }]);
 }
 function openBuyMenu(f, x, y) {
   const c = CAT[f.type];
@@ -809,7 +850,7 @@ export function initInput() {
   cv.addEventListener("contextmenu", e => { e.preventDefault(); cancelSelection(); hideMenu(); });
   document.addEventListener("pointerdown", e => { if (!menuEl.contains(e.target) && e.target !== cv) hideMenu(); });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { cancelSelection(); hideMenu(); closeOverlaysOnEsc(); }
+    if (e.key === "Escape") { cancelSelection(); hideMenu(); closeOverlaysOnEsc(); clearQueue(); }
     const typing = chatHasFocus() || document.activeElement.tagName === "INPUT";
     if ((e.key === "b" || e.key === "B") && !typing) setMode(mode === "live" ? "buy" : "live");
     if (!typing && e.key >= "1" && e.key <= "7") sendMyEmote(EMOTES[Number(e.key) - 1]);
