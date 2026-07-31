@@ -91,6 +91,9 @@ export function joinRoom(room) {
     channel.on("postgres_changes", { event: "INSERT", schema: "public", table: CHAT_TABLE }, payload => {
       handlers.onChat && handlers.onChat(payload.new);
     });
+    channel.on("postgres_changes", { event: "DELETE", schema: "public", table: CHAT_TABLE }, payload => {
+      handlers.onChatDelete && handlers.onChatDelete(payload.old);
+    });
     channel.on("postgres_changes",
       { event: "INSERT", schema: "public", table: FURNITURE_TABLE, filter: "room=eq." + room },
       payload => { handlers.onFurnitureInsert && handlers.onFurnitureInsert(payload.new); });
@@ -173,5 +176,20 @@ export async function dbPlaceFurniture(type, x, y) {
 }
 export async function dbRemoveFurniture(id) {
   const { error } = await supabase.from(FURNITURE_TABLE).delete().eq("id", id);
+  if (error) throw error;
+}
+/* Admin: einzelne Chat-Nachricht löschen */
+export async function dbDeleteChatMessage(id) {
+  const { error } = await supabase.from(CHAT_TABLE).delete().eq("id", id);
+  if (error) throw error;
+}
+/* Admin: kompletten Chatverlauf leeren */
+export async function dbClearChat() {
+  const { error } = await supabase.from(CHAT_TABLE).delete().gt("id", 0);
+  if (error) throw error;
+}
+/* Admin: die gesamte Welt zurücksetzen (Möbel in ALLEN Räumen löschen) */
+export async function dbResetWorld() {
+  const { error } = await supabase.from(FURNITURE_TABLE).delete().not("id", "is", null);
   if (error) throw error;
 }

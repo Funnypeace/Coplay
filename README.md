@@ -8,14 +8,20 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
 
 - **Multiplayer-Hub**: Alle sehen sich live rumlaufen (Supabase Realtime Presence + Broadcast)
 - **Einfache Accounts + Cloud-Save**: Name + eigenes Passwort (neuer Name = neues Konto), Fortschritt liegt in der Cloud und ist auf jedem Gerät da; Gast-Modus (nur lokal) weiterhin möglich
-- **Admin-Konto**: kann jedes Möbelstück im Hub verschieben/löschen (nicht nur eigene)
-- **3 Räume**: Lounge 🛋️, Garten 🌿 und Arcade 🕹️ – jeweils mit eigenem Look und eigener Einrichtung; Wechsel über die Tür oder den 🚪-Knopf
+- **Admin-Konto** (`Funnypeace`): kann jedes Möbelstück im Hub verschieben/löschen (nicht nur
+  eigene), jede Chat-Nachricht einzeln löschen oder den ganzen Chat leeren, und über
+  „🌍 Welt-Reset" die komplette Möbel-Einrichtung in allen Räumen zurücksetzen – das „Neu
+  starten" der normalen Spieler setzt dagegen ausschließlich den eigenen Fortschritt zurück
+  und rührt Chat/Hub-Möbel nie an
+- **3 Räume, jeweils anders groß**: Lounge 🛋️ (14×14, Zuhause-Basis), Garten 🌿 (12×12,
+  Wellness) und Arcade 🕹️ (10×10, kompakter Entertainment-Raum) – eigener Look, eigene
+  Einrichtung, eigenes Raster; Wechsel über die Tür oder den 🚪-Knopf
 - **Globaler Chat**: Panel + Sprechblasen über den Köpfen, Verlauf in der Datenbank (raumübergreifend)
 - **Emotes**: 👋 😂 ❤️ 👍 😮 🎉 per Leiste oder Tasten 1–6, sichtbar für alle im Raum
 - **Tagesquests**: jeden Tag 3 Aufgaben mit Taler- und XP-Belohnung
 - **Gemeinsames Bauen**: Platzierte Möbel sehen alle sofort; eigene Möbel kann man verschieben/verkaufen, Hub-Möbel sind fest
 - **Bedürfnisse & Aktionen**: Essen, Schlafen, Duschen, Arbeiten, Fernsehen … wie im Original
-- **24 Möbelstücke**: von Bett bis Whirlpool, Klavier, Dartscheibe, Kamin, Heimkino und mehr
+- **44 Möbelstücke**: von Bett über Whirlpool, Klavier und Heimkino bis Billardtisch, Sauna und Laufband
 - **5 Level**: XP durch Aktionen, jedes Level schaltet neue Möbel im Shop frei (Level 5 = Max)
 - **Erfolge**: 12 freischaltbare Erfolge (Chat, Bauen, Arbeiten, Haustier, Räume, Quests …)
 - **Haustier**: Katze, Hund oder Hase adoptieren – folgt dir durch den Hub, will Futter und Spiel; ein glückliches Haustier gibt +10 % XP
@@ -38,7 +44,8 @@ kostenlose Kontingent reicht für den Anfang locker.
 
 Tabellen (Präfix `coplay_`, liegen aktuell im Supabase-Projekt `app-aktivitaetstatus`):
 
-- `coplay_chat_messages` – globaler Chatverlauf (`player_id`, `name`, `color`, `text`)
+- `coplay_chat_messages` – globaler Chatverlauf (`player_id`, `name`, `color`, `text`); per RLS
+  auch löschbar (clientseitig auf Admin beschränkt, wie beim Möbel-Löschen)
 - `coplay_world_furniture` – gemeinsame Hub-Einrichtung (`type`, `x`, `y`, `room`, `placed_by`)
 - `coplay_accounts` – einfache Accounts (`username`, `password_hash`, `token`, `is_admin`, `save` als JSONB)
 

@@ -1,14 +1,15 @@
 /* Bootstrap: Spielstand + Account laden, UI aufbauen, Netzwerk verbinden, Loop starten */
-import { S, account, loadSave, saveNow, SAVE_KEY } from "./state.js";
+import { S, account, isAdmin, loadSave, saveNow, SAVE_KEY } from "./state.js";
 import * as W from "./world.js";
 import {
-  initNet, joinRoom, joinedRoom, loadWorld, loadChat, trackPresence, remote, connected,
+  initNet, joinRoom, joinedRoom, loadWorld, loadChat, trackPresence, remote, connected, dbResetWorld,
 } from "./net.js";
 import {
   toast, uiTop, buildNeedsUI, uiNeeds, initOverlays, closeStartOverlay,
-  openAchOverlay, openQuestOverlay, setOnline, setRoomUI, setAuthError, setStartBusy, updateProfileBtn,
+  openAchOverlay, openQuestOverlay, setOnline, setRoomUI, setAuthError, setStartBusy,
+  updateProfileBtn, updateAdminUI,
 } from "./ui.js";
-import { initChat, addChatMessage, addSysMessage } from "./chat.js";
+import { initChat, addChatMessage, addSysMessage, removeChatMessage, refreshChatAdminButtons } from "./chat.js";
 import { renderAchList, checkAll, trackStatMax } from "./achievements.js";
 import { renderPetCard } from "./pet.js";
 import { authLogin, tryTokenLogin, startCloudSync, pushCloudSave, logout } from "./auth.js";
@@ -53,6 +54,8 @@ async function boot() {
       if (!res.ok) { setAuthError(res.error); return; }
       closeStartOverlay();
       updateProfileBtn();
+      updateAdminUI();
+      refreshChatAdminButtons();
       initQuests();
       refreshAllUi();
       toast(res.isNew
@@ -83,7 +86,20 @@ async function boot() {
   });
   document.getElementById("achBtn").onclick = () => { renderAchList(); openAchOverlay(); };
   document.getElementById("questBtn").onclick = () => { renderQuestList(); openQuestOverlay(); };
+  document.getElementById("worldResetBtn").onclick = async () => {
+    if (!isAdmin()) return;
+    if (!confirm("🚨 WIRKLICH die komplette Welt zurücksetzen? Alle platzierten Möbel in ALLEN Räumen werden für ALLE Spieler gelöscht – das lässt sich nicht rückgängig machen!")) return;
+    if (!confirm("Ganz sicher? Das ist die letzte Bestätigung.")) return;
+    try {
+      await dbResetWorld();
+      W.setFurniture([]);
+      toast("🌍 Welt wurde zurückgesetzt.", "warn");
+    } catch (e) {
+      toast("Welt-Reset fehlgeschlagen – keine Verbindung?", "warn");
+    }
+  };
   updateProfileBtn();
+  updateAdminUI();
 
   startLoop();
 
@@ -102,6 +118,7 @@ async function boot() {
   try {
     await initNet({
       onChat: m => addChatMessage(m),
+      onChatDelete: old => { if (old && old.id != null) removeChatMessage(old.id); },
       onFurnitureInsert: f => { if (worldLoaded) W.addFurniture(f); },
       onFurnitureDelete: old => { if (old && old.id) { W.removeFurnitureById(old.id); onFurnitureRemoved(old.id); } },
       onPresence: rm => {
@@ -130,10 +147,12 @@ async function boot() {
     toast("Offline-Modus – du bist allein im Hub.", "warn");
   }
 
-  // Falls die gespeicherte Position inzwischen verbaut ist: freie Kachel suchen
+  // Falls die gespeicherte Position außerhalb liegt oder inzwischen verbaut ist: freie Kachel suchen
+  const G = W.currentGrid();
   const cc = W.charCell();
-  if (W.cellBlocked(cc.x, cc.y)) {
-    const free = W.findFreeTile(7, 9);
+  if (S.char.x < 0 || S.char.y < 0 || S.char.x >= G || S.char.y >= G || W.cellBlocked(cc.x, cc.y)) {
+    const c = Math.floor(G / 2);
+    const free = W.findFreeTile(c, c);
     S.char.x = free.x + 0.5; S.char.y = free.y + 0.5;
     trackPresence();
   }

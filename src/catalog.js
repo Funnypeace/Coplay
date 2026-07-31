@@ -1,5 +1,6 @@
 /* Spieldaten: Raster, Bedürfnisse, Möbelkatalog, Level */
 export const GRID = 14, TW2 = 34, TH2 = 17, OX = 520, OY = 130, WALL_H = 92;
+/* Fallback-Rastergröße; die tatsächliche Größe pro Raum liefert roomGrid() unten */
 export const MAX_LEVEL = 5;
 export const NEED_KEYS = ["hunger", "energie", "hygiene", "spass"];
 export const NEED_META = {
@@ -51,15 +52,51 @@ export const CAT = {
                  act: { label: "Entspannen", dur: 8, needs: { hygiene: 55, energie: 35, spass: 28 }, xp: 18, fl: "♨️" } },
   heimkino:    { name: "Heimkino", emoji: "🎬", price: 560, w: 2, d: 1, hh: 42, lvl: 5,
                  act: { label: "Kino schauen", dur: 7, needs: { spass: 75 }, xp: 16, fl: "🎬" } },
+
+  /* ---- 20 weitere Items ---- */
+  teddybaer:   { name: "Teddybär", emoji: "🧸", price: 40, w: 1, d: 1, hh: 20, lvl: 1, deko: true },
+  gemaelde:    { name: "Gemälde", emoji: "🖼️", price: 70, w: 1, d: 1, hh: 60, lvl: 1, deko: true },
+  vase:        { name: "Blumenvase", emoji: "💐", price: 45, w: 1, d: 1, hh: 24, lvl: 1, deko: true },
+  yogamatte:   { name: "Yogamatte", emoji: "🧘", price: 100, w: 1, d: 1, hh: 10, lvl: 1,
+                 act: { label: "Yoga machen", dur: 4, needs: { spass: 18, hygiene: 6 }, xp: 7, fl: "🧘" } },
+  haengematte: { name: "Hängematte", emoji: "🌴", price: 240, w: 2, d: 1, hh: 46, lvl: 2,
+                 act: { label: "Dösen in der Hängematte", dur: 6, needs: { energie: 35, spass: 15 }, xp: 9, fl: "😌" } },
+  schaukelstuhl:{ name: "Schaukelstuhl", emoji: "🔄", price: 190, w: 1, d: 1, hh: 40, lvl: 2,
+                 act: { label: "Schaukeln", dur: 5, needs: { energie: 20, spass: 14 }, xp: 8, fl: "😌" } },
+  plattenspieler:{ name: "Plattenspieler", emoji: "📀", price: 150, w: 1, d: 1, hh: 26, lvl: 2, deko: true },
+  kerzen:      { name: "Kerzenständer", emoji: "🕯️", price: 55, w: 1, d: 1, hh: 20, lvl: 2, deko: true },
+  staffelei:   { name: "Staffelei", emoji: "🎨", price: 230, w: 1, d: 1, hh: 48, lvl: 3,
+                 act: { label: "Malen", dur: 7, needs: { spass: 42 }, xp: 16, fl: "🎨" } },
+  sandsack:    { name: "Boxsack", emoji: "🥊", price: 260, w: 1, d: 1, hh: 50, lvl: 3,
+                 act: { label: "Boxen", dur: 5, needs: { spass: 35, energie: -10 }, xp: 13, fl: "🥊" } },
+  basketballkorb:{ name: "Basketballkorb", emoji: "🏀", price: 240, w: 1, d: 1, hh: 64, lvl: 3,
+                 act: { label: "Basketball spielen", dur: 6, needs: { spass: 45, energie: -8 }, xp: 14, fl: "🏀" } },
+  weinregal:   { name: "Weinregal", emoji: "🍷", price: 170, w: 1, d: 1, hh: 50, lvl: 3,
+                 act: { label: "Wein genießen", dur: 3, needs: { spass: 20 }, xp: 8, fl: "🍷" } },
+  tischkicker: { name: "Tischkicker", emoji: "⚽", price: 360, w: 2, d: 1, hh: 30, lvl: 4,
+                 act: { label: "Kickern", dur: 6, needs: { spass: 50 }, xp: 17, fl: "⚽" } },
+  trampolin:   { name: "Trampolin", emoji: "🤸", price: 340, w: 2, d: 2, hh: 14, lvl: 4,
+                 act: { label: "Trampolin hüpfen", dur: 6, needs: { spass: 58, energie: -10 }, xp: 18, fl: "🤸" } },
+  spielekonsole:{ name: "Spielekonsole", emoji: "🎮", price: 380, w: 1, d: 1, hh: 34, lvl: 4,
+                 act: { label: "Zocken", dur: 6, needs: { spass: 62 }, xp: 19, fl: "🎮" } },
+  massageliege:{ name: "Massageliege", emoji: "💆", price: 400, w: 2, d: 1, hh: 24, lvl: 4,
+                 act: { label: "Massage genießen", dur: 6, needs: { hygiene: 25, energie: 25, spass: 20 }, xp: 18, fl: "💆" } },
+  billardtisch:{ name: "Billardtisch", emoji: "🎱", price: 620, w: 2, d: 2, hh: 24, lvl: 5,
+                 act: { label: "Billard spielen", dur: 7, needs: { spass: 70 }, xp: 20, fl: "🎱" } },
+  sauna:       { name: "Sauna", emoji: "🧖", price: 640, w: 1, d: 1, hh: 66, lvl: 5,
+                 act: { label: "Saunieren", dur: 7, needs: { hygiene: 70, energie: 30 }, xp: 19, fl: "🧖" } },
+  kronleuchter:{ name: "Kronleuchter", emoji: "✨", price: 480, w: 1, d: 1, hh: 70, lvl: 5, deko: true },
+  laufband:    { name: "Laufband", emoji: "🏃", price: 420, w: 2, d: 1, hh: 40, lvl: 5,
+                 act: { label: "Joggen", dur: 6, needs: { spass: 34, energie: -16 }, xp: 16, fl: "🏃" } },
 };
 export const SHIRTS = ["#3fb8a0", "#e36767", "#9a6fe0", "#e8a13f", "#5f8fe8"];
 
 export function xpNeed(l) { return 100 + (l - 1) * 120; }
 
-/* Räume mit eigenem Look */
+/* Räume mit eigenem Look UND eigener Größe (Raster) */
 export const ROOMS = {
   lounge: {
-    name: "Lounge", emoji: "🛋️",
+    name: "Lounge", emoji: "🛋️", grid: 14,
     bg: ["#1d2438", "#242c44"],
     floor: ["#c2995f", "#cba368"],
     wallL: ["#5b688a", "#5f6c90"], wallR: ["#6a78a0", "#6e7ca4"],
@@ -67,7 +104,7 @@ export const ROOMS = {
     glassDay: "#aee0ff", glassNight: "#26345e",
   },
   garten: {
-    name: "Garten", emoji: "🌿",
+    name: "Garten", emoji: "🌿", grid: 12,
     bg: ["#1c2b38", "#223447"],
     floor: ["#7fae6a", "#8aba74"],
     wallL: ["#4e7d4d", "#528251"], wallR: ["#5a8f58", "#5e935c"],
@@ -75,7 +112,7 @@ export const ROOMS = {
     glassDay: "#cfe8ff", glassNight: "#22304f",
   },
   arcade: {
-    name: "Arcade", emoji: "🕹️",
+    name: "Arcade", emoji: "🕹️", grid: 10,
     bg: ["#181c30", "#20243c"],
     floor: ["#4a4664", "#514d6e"],
     wallL: ["#3c3a5e", "#403e63"], wallR: ["#474368", "#4b476d"],
@@ -83,3 +120,7 @@ export const ROOMS = {
     glassDay: "#9fb8e8", glassNight: "#1e2746",
   },
 };
+/* Rastergröße des angegebenen Raums (Fallback: GRID) */
+export function roomGrid(room) {
+  return (ROOMS[room] && ROOMS[room].grid) || GRID;
+}

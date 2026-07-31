@@ -1,6 +1,6 @@
 /* DOM-UI: Topbar, Bedürfnisse, Shop, Menüs, Overlays, Toasts */
 import { CAT, NEED_KEYS, NEED_META, SHIRTS, MAX_LEVEL, xpNeed, ROOMS } from "./catalog.js";
-import { S, account, avgNeeds, saveNow } from "./state.js";
+import { S, account, isAdmin, avgNeeds, saveNow } from "./state.js";
 import { clamp } from "./draw.js";
 
 const moneyEl = document.getElementById("money"), lvlBadge = document.getElementById("lvlBadge"),
@@ -46,6 +46,14 @@ export function updateProfileBtn() {
   const btn = document.getElementById("profileBtn");
   if (!btn) return;
   btn.textContent = account.id ? "👤 " + (account.username || "Profil") : "🔑 Login";
+}
+/* Admin-only Bedienelemente ein-/ausblenden (Welt-Reset, Chat leeren) */
+export function updateAdminUI() {
+  const admin = isAdmin();
+  const worldBtn = document.getElementById("worldResetBtn");
+  if (worldBtn) worldBtn.classList.toggle("hidden", !admin);
+  const chatClear = document.getElementById("chatClearBtn");
+  if (chatClear) chatClear.classList.toggle("hidden", !admin);
 }
 
 export function buildNeedsUI() {
@@ -180,11 +188,12 @@ export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout, onRese
   document.getElementById("questClose").onclick = () => document.getElementById("questOverlay").classList.add("hidden");
   document.getElementById("profileBtn").onclick = () => openStartOverlay(account.id ? "profil" : "login");
   document.getElementById("resetBtn").onclick = () => {
-    if (confirm("Deinen lokalen Spielstand wirklich löschen und neu starten? (Chat & Hub-Möbel bleiben erhalten)")) {
+    if (confirm("Nur DEIN eigener Fortschritt (Taler, Level, Haustier, Erfolge, Quests) wird zurückgesetzt. Chat und die Hub-Einrichtung bleiben für ALLE erhalten – die Welt wird dadurch nie zurückgesetzt. Fortfahren?")) {
       onReset && onReset();
     }
   };
   updateProfileBtn();
+  updateAdminUI();
 }
 
 export function openStartOverlay(mode) {

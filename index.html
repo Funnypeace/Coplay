@@ -19,7 +19,8 @@
   <button class="btn" id="achBtn">🏆 Erfolge</button>
   <button class="btn" id="profileBtn">🔑 Login</button>
   <button class="btn" id="helpBtn">❓ Hilfe</button>
-  <button class="btn danger" id="resetBtn">↺ Neu starten</button>
+  <button class="btn danger" id="resetBtn" title="Setzt NUR deinen eigenen Fortschritt zurück">↺ Neu starten</button>
+  <button class="btn danger hidden" id="worldResetBtn" title="Admin: löscht ALLE Möbel in ALLEN Räumen für ALLE Spieler">🌍 Welt-Reset</button>
 </div>
 <div id="main">
   <div id="canvasWrap">
@@ -39,7 +40,7 @@
       <div id="petBody"></div>
     </div>
     <div class="card" id="chatCard">
-      <h3>💬 Globaler Chat</h3>
+      <h3>💬 Globaler Chat <button class="btn danger hidden" id="chatClearBtn" title="Chat komplett leeren (Admin)">🧹 Leeren</button></h3>
       <div id="chatMsgs"></div>
       <form id="chatForm" autocomplete="off">
         <input type="text" id="chatInput" maxlength="300" placeholder="Nachricht an alle …">

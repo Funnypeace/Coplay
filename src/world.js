@@ -1,7 +1,10 @@
 /* Gemeinsame Hub-Welt: Möbel, Raster, Wegfindung */
-import { GRID, CAT } from "./catalog.js";
+import { CAT, roomGrid } from "./catalog.js";
 import { S } from "./state.js";
 import { clamp, isoPt } from "./draw.js";
+
+/* Rastergröße des aktuellen Raums (jeder Raum hat seine eigene Größe) */
+export function currentGrid() { return roomGrid(S.room); }
 
 export let furniture = []; // {id, type, x, y, placed_by, placed_by_name}
 
@@ -29,7 +32,7 @@ export function cellBlocked(cx, cy) {
   return false;
 }
 export function canPlace(type, x, y) {
-  const c = CAT[type];
+  const c = CAT[type], GRID = currentGrid();
   if (x < 0 || y < 0 || x + c.w > GRID || y + c.d > GRID) return false;
   const cc = charCell();
   for (let i = 0; i < c.w; i++) for (let j = 0; j < c.d; j++) {
@@ -47,9 +50,11 @@ export function canPlace(type, x, y) {
   return true;
 }
 export function charCell() {
+  const GRID = currentGrid();
   return { x: clamp(Math.floor(S.char.x), 0, GRID - 1), y: clamp(Math.floor(S.char.y), 0, GRID - 1) };
 }
 export function bfs(from) {
+  const GRID = currentGrid();
   const dist = Array.from({ length: GRID }, () => Array(GRID).fill(Infinity));
   const parent = {}; const q = [[from.x, from.y]]; dist[from.y][from.x] = 0;
   while (q.length) {
@@ -72,7 +77,7 @@ export function reconstruct(parent, from, to) {
   path.reverse(); return path;
 }
 export function approachTiles(f) {
-  const c = CAT[f.type], cells = [];
+  const c = CAT[f.type], cells = [], GRID = currentGrid();
   for (let i = 0; i < c.w; i++) { cells.push({ x: f.x + i, y: f.y - 1 }); cells.push({ x: f.x + i, y: f.y + c.d }); }
   for (let j = 0; j < c.d; j++) { cells.push({ x: f.x - 1, y: f.y + j }); cells.push({ x: f.x + c.w, y: f.y + j }); }
   return cells.filter(p => p.x >= 0 && p.y >= 0 && p.x < GRID && p.y < GRID && !cellBlocked(p.x, p.y));
@@ -100,7 +105,8 @@ export function furnitureAt(sx, sy) {
 }
 /* Freie Kachel in der Nähe der Mitte finden (Spawn) */
 export function findFreeTile(px, py) {
-  const cx = Math.round(px), cy = Math.round(py);
+  const GRID = currentGrid();
+  const cx = clamp(Math.round(px), 0, GRID - 1), cy = clamp(Math.round(py), 0, GRID - 1);
   for (let r = 0; r < GRID; r++) {
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
       if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
@@ -109,5 +115,5 @@ export function findFreeTile(px, py) {
       if (!cellBlocked(x, y)) return { x, y };
     }
   }
-  return { x: 7, y: 9 };
+  return { x: Math.floor(GRID / 2), y: Math.floor(GRID / 2) };
 }

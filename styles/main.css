@@ -56,10 +56,17 @@ canvas{width:100%; height:auto; max-height:82vh; display:block; touch-action:man
 
 /* Chat */
 #chatCard{flex:1; min-height:120px; display:flex; flex-direction:column; overflow:hidden;}
+#chatCard h3{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+#chatClearBtn{font-size:11px; padding:3px 8px; text-transform:none; letter-spacing:normal;}
 #chatMsgs{flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px; font-size:13px; padding-right:4px; margin-bottom:8px; min-height:60px;}
-#chatMsgs .m{line-height:1.4; word-wrap:break-word; overflow-wrap:anywhere;}
+#chatMsgs .m{line-height:1.4; word-wrap:break-word; overflow-wrap:anywhere; position:relative; padding-right:4px;}
 #chatMsgs .m .n{font-weight:700;}
 #chatMsgs .m .t{color:#cdd6ea;}
+#chatMsgs .m .msgDel{
+  background:none; border:none; color:#ffb1b1; cursor:pointer; font-size:11px;
+  padding:0 0 0 6px; opacity:.55; vertical-align:middle;
+}
+#chatMsgs .m .msgDel:hover{opacity:1;}
 #chatMsgs .sys{color:var(--muted); font-style:italic; font-size:12px;}
 #chatForm{display:flex; gap:6px;}
 #chatInput{flex:1; background:#1a2032; border:1px solid var(--line); color:var(--text); border-radius:10px; padding:8px 10px; font-size:13.5px; min-width:0;}

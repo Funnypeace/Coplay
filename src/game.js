@@ -1,5 +1,5 @@
 /* Spielschleife, Rendering und Eingaben */
-import { GRID, CAT, NEED_KEYS, NEED_META, WALL_H, OX, OY, TW2, TH2, ROOMS } from "./catalog.js";
+import { CAT, NEED_KEYS, NEED_META, WALL_H, OX, OY, TW2, TH2, ROOMS, roomGrid } from "./catalog.js";
 import {
   cv, ctx, clamp, isoPt, shade, poly, line, circ, ell, rect, rrect, txt,
   boxIso, southPt, fl, drawFloaters,
@@ -41,29 +41,46 @@ function dayInfo() {
 
 /* ================= Wände & Boden ================= */
 function theme() { return ROOMS[S.room] || ROOMS.lounge; }
+export function grid() { return roomGrid(S.room); }
+
+/* Tür-Bereich (auf der linken Wand) als Anteil der jeweiligen Rastergröße, Breite bleibt 1.8 Kacheln */
+function doorRange(g) { const a = g * 0.46; return [a, a + 1.8]; }
+/* Fenster-Segmente entlang einer Wand der Länge g; linke Wand spart den Türbereich aus */
+function windowSegs(g, offset, avoidDoor) {
+  const segs = [];
+  for (let start = offset; start + 1.8 <= g - 0.5; start += 4) {
+    const end = start + 1.8;
+    if (avoidDoor) {
+      const [dA, dB] = doorRange(g);
+      if (end > dA - 0.3 && start < dB + 0.3) continue;
+    }
+    segs.push([start, end]);
+  }
+  return segs;
+}
 
 function drawWalls(night) {
-  const T = theme();
+  const T = theme(), G = grid();
   const glass = night ? T.glassNight : T.glassDay;
-  for (let y = 0; y < GRID; y++) {
+  for (let y = 0; y < G; y++) {
     const a = isoPt(0, y, 0), b = isoPt(0, y + 1, 0);
     poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], y % 2 ? T.wallL[0] : T.wallL[1]);
     poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], T.stripL);
   }
-  for (let x = 0; x < GRID; x++) {
+  for (let x = 0; x < G; x++) {
     const a = isoPt(x, 0, 0), b = isoPt(x + 1, 0, 0);
     poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - WALL_H], [a.x, a.y - WALL_H]], x % 2 ? T.wallR[0] : T.wallR[1]);
     poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 8], [a.x, a.y - 8]], T.stripR);
   }
   // Fenster rechte Wand
-  [[1.4, 3.2], [5.4, 7.2], [9.4, 11.2]].forEach(seg => {
+  windowSegs(G, 1.4, false).forEach(seg => {
     const P = u => isoPt(seg[0] + (seg[1] - seg[0]) * u, 0, 0);
     const a = P(0), b = P(1);
     poly([[a.x, a.y - 32], [b.x, b.y - 32], [b.x, b.y - 72], [a.x, a.y - 72]], glass, "#dfe6f2", 2);
     const m = P(0.5); line({ x: m.x, y: m.y - 32 }, { x: m.x, y: m.y - 72 }, "#dfe6f2", 1.5);
   });
-  // Fenster linke Wand
-  [[2.2, 4.0], [10.2, 12.0]].forEach(seg => {
+  // Fenster linke Wand (Türbereich ausgespart)
+  windowSegs(G, 2.2, true).forEach(seg => {
     const P = u => isoPt(0, seg[0] + (seg[1] - seg[0]) * u, 0);
     const a = P(0), b = P(1);
     poly([[a.x, a.y - 32], [b.x, b.y - 32], [b.x, b.y - 72], [a.x, a.y - 72]], glass, "#cdd6e8", 2);
@@ -71,7 +88,8 @@ function drawWalls(night) {
   });
   // Tür linke Wand
   (() => {
-    const P = u => isoPt(0, 6.4 + 1.8 * u, 0);
+    const [dA] = doorRange(G);
+    const P = u => isoPt(0, dA + 1.8 * u, 0);
     const a = P(0), b = P(1);
     poly([[a.x, a.y], [b.x, b.y], [b.x, b.y - 78], [a.x, a.y - 78]], "#4a3a2c", "#3a2d22", 2);
     const h = P(0.82); circ(h.x, h.y - 38, 2.5, "#d8b96a");
@@ -79,15 +97,15 @@ function drawWalls(night) {
 }
 
 function drawFloor() {
-  const T = theme();
-  for (let y = 0; y < GRID; y++) for (let x = 0; x < GRID; x++) {
+  const T = theme(), G = grid();
+  for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) {
     const a = isoPt(x, y), b = isoPt(x + 1, y), c = isoPt(x + 1, y + 1), d = isoPt(x, y + 1);
     poly([[a.x, a.y], [b.x, b.y], [c.x, c.y], [d.x, d.y]], (x + y) % 2 ? T.floor[0] : T.floor[1], "rgba(0,0,0,.08)");
   }
   if (mode === "buy") {
-    for (let i = 0; i <= GRID; i++) {
-      line(isoPt(i, 0), isoPt(i, GRID), "rgba(255,255,255,.12)", 1);
-      line(isoPt(0, i), isoPt(GRID, i), "rgba(255,255,255,.12)", 1);
+    for (let i = 0; i <= G; i++) {
+      line(isoPt(i, 0), isoPt(i, G), "rgba(255,255,255,.12)", 1);
+      line(isoPt(0, i), isoPt(G, i), "rgba(255,255,255,.12)", 1);
     }
   }
 }
@@ -96,6 +114,17 @@ function tileHighlight(x, y, w, d, ok) {
   const a = isoPt(x, y), b = isoPt(x + w, y), c = isoPt(x + w, y + d), dd = isoPt(x, y + d);
   poly([[a.x, a.y], [b.x, b.y], [c.x, c.y], [dd.x, dd.y]],
     ok ? "rgba(88,224,138,.35)" : "rgba(227,103,103,.4)", ok ? "#58e08a" : "#e36767", 2);
+}
+
+/* Kleines Accessoire: farbiger Sockel + großes, stets sichtbares Emoji-Symbol
+   (+ optional zweites Emoji als Aktions-Feedback). Für die 20 Hobby-/Deko-Items. */
+function drawProp(x, y, t, active, emoji, baseColor, hh, activeEmoji) {
+  const p = isoPt(x + 0.5, y + 0.5, 0);
+  ell(p.x, p.y - 1, 11, 5, "rgba(0,0,0,.22)");
+  boxIso(x + 0.3, y + 0.3, 0.4, 0.4, Math.min(hh, 14), 0, baseColor);
+  const bob = active ? Math.sin(t * 3) * 2 : 0;
+  txt(emoji, p.x, p.y - hh * 0.55 - bob, 19, "#fff");
+  if (active && activeEmoji) txt(activeEmoji, p.x + 10, p.y - hh * 0.85, 12, "#fff");
 }
 
 /* ================= Möbel zeichnen ================= */
@@ -290,6 +319,28 @@ function drawFurniture(f, t, active) {
       poly([[Pa.x, Pa.y], [Pb.x, Pb.y], [Pc.x, Pc.y], [Pd.x, Pd.y]], col);
       boxIso(x + 0.02, y + 0.42, 0.12, 0.16, 20, 0, "#2a2f3a"); boxIso(x + 1.86, y + 0.42, 0.12, 0.16, 20, 0, "#2a2f3a");
       break; }
+
+    /* ---- 20 weitere Items: einheitlicher Sockel + Emoji-Symbol ---- */
+    case "teddybaer": drawProp(x, y, t, active, "🧸", "#c48a52", 20); break;
+    case "gemaelde": drawProp(x, y, t, active, "🖼️", "#5a4030", 60); break;
+    case "vase": drawProp(x, y, t, active, "💐", "#e8e0d0", 24); break;
+    case "yogamatte": drawProp(x, y, t, active, "🧘", "#5f8fe8", 10); break;
+    case "haengematte": drawProp(x, y, t, active, "🌴", "#8a6543", 46, "😌"); break;
+    case "schaukelstuhl": drawProp(x, y, t, active, "🔄", "#8a6543", 40, "😌"); break;
+    case "plattenspieler": drawProp(x, y, t, active, "📀", "#3a3a44", 26); break;
+    case "kerzen": drawProp(x, y, t, active, "🕯️", "#6b4a32", 20); break;
+    case "staffelei": drawProp(x, y, t, active, "🎨", "#8a6543", 48, "✨"); break;
+    case "sandsack": drawProp(x, y, t, active, "🥊", "#6b4a3a", 50, "💥"); break;
+    case "basketballkorb": drawProp(x, y, t, active, "🏀", "#8a94ac", 64, "⚡"); break;
+    case "weinregal": drawProp(x, y, t, active, "🍷", "#5a3f28", 50); break;
+    case "tischkicker": drawProp(x, y, t, active, "⚽", "#3a5a3a", 30, "⚡"); break;
+    case "trampolin": drawProp(x, y, t, active, "🤸", "#2e3850", 14, "💫"); break;
+    case "spielekonsole": drawProp(x, y, t, active, "🎮", "#2c2c34", 34, "✨"); break;
+    case "massageliege": drawProp(x, y, t, active, "💆", "#c9b8a0", 24, "😌"); break;
+    case "billardtisch": drawProp(x, y, t, active, "🎱", "#2f6b45", 24); break;
+    case "sauna": drawProp(x, y, t, active, "🧖", "#7a5739", 66, "💦"); break;
+    case "kronleuchter": drawProp(x, y, t, active, "✨", "#8a7a3a", 70); break;
+    case "laufband": drawProp(x, y, t, active, "🏃", "#3a4256", 40, "💨"); break;
   }
 }
 
@@ -472,7 +523,8 @@ export async function switchRoom(room) {
     await joinRoom(room);
     const world = await loadWorld(room);
     W.setFurniture(world);
-    const free = W.findFreeTile(7, 9);
+    const c = Math.floor(W.currentGrid() / 2);
+    const free = W.findFreeTile(c, c);
     S.char.x = free.x + 0.5; S.char.y = free.y + 0.5;
     trackPresence();
     setRoomUI(room);
@@ -493,9 +545,10 @@ function openRoomMenu(x, y) {
     .map(id => ({ label: ROOMS[id].emoji + " " + ROOMS[id].name, cb: () => { hideMenu(); switchRoom(id); } }));
   showMenu(x, y, entries);
 }
-/* Tür an der linken Wand (Segment y=6.4..8.2) */
+/* Tür an der linken Wand */
 function doorHit(sx, sy) {
-  const p1 = isoPt(0, 6.4, 0), p2 = isoPt(0, 8.2, 0);
+  const [dA, dB] = doorRange(grid());
+  const p1 = isoPt(0, dA, 0), p2 = isoPt(0, dB, 0);
   const minX = Math.min(p1.x, p2.x), maxX = Math.max(p1.x, p2.x);
   const maxY = Math.max(p1.y, p2.y), minY = Math.min(p1.y, p2.y) - 78;
   return sx >= minX && sx <= maxX && sy >= minY && sy <= maxY;
@@ -687,11 +740,11 @@ export function setMode(m) {
 
 export function initInput() {
   cv.addEventListener("pointermove", e => {
-    const p = canvasPos(e), c = screenToCell(p.x, p.y);
-    hoverTile = (c.x >= 0 && c.y >= 0 && c.x < GRID && c.y < GRID) ? { x: c.x, y: c.y } : null;
+    const p = canvasPos(e), c = screenToCell(p.x, p.y), G = grid();
+    hoverTile = (c.x >= 0 && c.y >= 0 && c.x < G && c.y < G) ? { x: c.x, y: c.y } : null;
     if (hoverTile && selection) {
       const cc = CAT[selection.type];
-      hoverTile = { x: clamp(c.x, 0, GRID - cc.w), y: clamp(c.y, 0, GRID - cc.d) };
+      hoverTile = { x: clamp(c.x, 0, G - cc.w), y: clamp(c.y, 0, G - cc.d) };
     }
   });
   cv.addEventListener("pointerleave", () => hoverTile = null);
@@ -713,7 +766,8 @@ export function initInput() {
     }
     const f = W.furnitureAt(p.x, p.y);
     if (f) { openLiveMenu(f, p.cx, p.cy); return; }
-    if (cell.x >= 0 && cell.y >= 0 && cell.x < GRID && cell.y < GRID && !W.cellBlocked(cell.x, cell.y)) walkTo(cell.x, cell.y);
+    const G = grid();
+    if (cell.x >= 0 && cell.y >= 0 && cell.x < G && cell.y < G && !W.cellBlocked(cell.x, cell.y)) walkTo(cell.x, cell.y);
   });
   cv.addEventListener("contextmenu", e => { e.preventDefault(); cancelSelection(); hideMenu(); });
   document.addEventListener("pointerdown", e => { if (!menuEl.contains(e.target) && e.target !== cv) hideMenu(); });
