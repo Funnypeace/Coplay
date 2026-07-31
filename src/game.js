@@ -113,7 +113,7 @@ function drawFloor() {
 function tileHighlight(x, y, w, d, ok) {
   const a = isoPt(x, y), b = isoPt(x + w, y), c = isoPt(x + w, y + d), dd = isoPt(x, y + d);
   poly([[a.x, a.y], [b.x, b.y], [c.x, c.y], [dd.x, dd.y]],
-    ok ? "rgba(88,224,138,.35)" : "rgba(227,103,103,.4)", ok ? "#58e08a" : "#e36767", 2);
+    ok ? "rgba(107,187,142,.32)" : "rgba(217,123,115,.38)", ok ? "#6bbb8e" : "#d97b73", 2);
 }
 
 /* Kleines Accessoire: farbiger Sockel + großes, stets sichtbares Emoji-Symbol
@@ -361,16 +361,16 @@ function drawPersonAt(gx, gy, name, shirt, opts) {
   circ(P.x - 3, by - 43.5, 1.4, "#222"); circ(P.x + 3, by - 43.5, 1.4, "#222");
   ctx.beginPath(); ctx.arc(P.x, by - 40.5, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.strokeStyle = "#a3704c"; ctx.lineWidth = 1.4; ctx.stroke();
   if (opts.mood != null) {
-    const mc = opts.mood >= 70 ? "#58e08a" : opts.mood >= 40 ? "#f4c95d" : "#e36767";
+    const mc = opts.mood >= 70 ? "#6bbb8e" : opts.mood >= 40 ? "#e0a856" : "#d97b73";
     ctx.save(); ctx.shadowColor = mc; ctx.shadowBlur = 10;
     circ(P.x, by - 61 + Math.sin((opts.t || 0) * 2.4) * 1.5, 4.5, mc);
     ctx.restore();
   }
   txt(name, P.x, by - 71, 11.5, "#eef2fb");
-  if (opts.level) txt("Lv " + opts.level, P.x, by - 82, 9.5, "#9fd8cc");
+  if (opts.level) txt("Lv " + opts.level, P.x, by - 82, 9.5, "#c9b98a");
   if (opts.progress != null) {
-    rrect(P.x - 23, by - 88, 46, 8, 4, "#111728");
-    if (opts.progress > 0.02) rrect(P.x - 21, by - 86, 42 * opts.progress, 4, 2, "#4cc9a8");
+    rrect(P.x - 23, by - 88, 46, 8, 4, "#111318");
+    if (opts.progress > 0.02) rrect(P.x - 21, by - 86, 42 * opts.progress, 4, 2, "#d3ad68");
   }
 }
 
@@ -589,11 +589,11 @@ function completeAction() {
   const def = action.def, P = charPx(); let dy = 0;
   Object.keys(def.needs || {}).forEach(k => {
     S.needs[k] = clamp(S.needs[k] + def.needs[k], 0, 100);
-    if (def.needs[k] > 0) { fl(P.x, P.y - 92 - dy, "+" + def.needs[k] + " " + NEED_META[k].icon, "#9fe8c5"); dy += 15; }
+    if (def.needs[k] > 0) { fl(P.x, P.y - 92 - dy, "+" + def.needs[k] + " " + NEED_META[k].icon, "#8fc7a3"); dy += 15; }
   });
   if (def.work) {
     const pay = 40 + 15 * S.level; S.money += pay;
-    fl(P.x, P.y - 92 - dy, "+" + pay + " 💰", "#f4c95d"); dy += 15;
+    fl(P.x, P.y - 92 - dy, "+" + pay + " 💰", "#e7cb96"); dy += 15;
     trackStat("works");
     questEvent("work");
   }
@@ -628,7 +628,7 @@ async function placeSelection(x, y) {
     } else {
       S.money -= c.price;
       const p = isoPt(x + c.w / 2, y + c.d / 2, 40);
-      fl(p.x, p.y, "−" + c.price + " 💰", "#f4c95d");
+      fl(p.x, p.y, "−" + c.price + " 💰", "#e7cb96");
       trackStat("placed");
       questEvent("place");
       gainXp(5, 0);

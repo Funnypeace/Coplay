@@ -71,9 +71,9 @@ export function uiNeeds() {
     const v = S.needs[k], f = document.getElementById("nf_" + k);
     if (!f) return;
     f.style.width = v + "%";
-    f.style.background = v >= 60 ? "linear-gradient(90deg,#4cc9a8,#58e08a)" :
-      v >= 30 ? "linear-gradient(90deg,#e8a13f,#f4c95d)" :
-        "linear-gradient(90deg,#c94c4c,#e36767)";
+    f.style.background = v >= 60 ? "linear-gradient(90deg,#4a9270,#6bbb8e)" :
+      v >= 30 ? "linear-gradient(90deg,#b8843f,#e0a856)" :
+        "linear-gradient(90deg,#a3564e,#d97b73)";
     document.getElementById("nv_" + k).textContent = Math.round(v);
   });
   const a = avgNeeds();
@@ -148,7 +148,7 @@ export function setStartBusy(busy) {
   b.textContent = busy ? "Einen Moment …" : (overlayMode === "login" ? "Anmelden / Registrieren" : "Speichern");
 }
 
-export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout, onReset }) {
+export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout }) {
   const swatchesEl = document.getElementById("swatches"), nameInput = document.getElementById("nameInput");
   pickShirt = S.shirt;
   SHIRTS.forEach(col => {
@@ -187,11 +187,6 @@ export function initOverlays({ onLogin, onGuest, onProfileSave, onLogout, onRese
   document.getElementById("achClose").onclick = () => achOverlay.classList.add("hidden");
   document.getElementById("questClose").onclick = () => document.getElementById("questOverlay").classList.add("hidden");
   document.getElementById("profileBtn").onclick = () => openStartOverlay(account.id ? "profil" : "login");
-  document.getElementById("resetBtn").onclick = () => {
-    if (confirm("Nur DEIN eigener Fortschritt (Taler, Level, Haustier, Erfolge, Quests) wird zurückgesetzt. Chat und die Hub-Einrichtung bleiben für ALLE erhalten – die Welt wird dadurch nie zurückgesetzt. Fortfahren?")) {
-      onReset && onReset();
-    }
-  };
   updateProfileBtn();
   updateAdminUI();
 }

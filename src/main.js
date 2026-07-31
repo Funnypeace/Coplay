@@ -1,5 +1,5 @@
 /* Bootstrap: Spielstand + Account laden, UI aufbauen, Netzwerk verbinden, Loop starten */
-import { S, account, isAdmin, loadSave, saveNow, SAVE_KEY } from "./state.js";
+import { S, account, isAdmin, loadSave, saveNow } from "./state.js";
 import * as W from "./world.js";
 import {
   initNet, joinRoom, joinedRoom, loadWorld, loadChat, trackPresence, remote, connected, dbResetWorld,
@@ -79,10 +79,6 @@ async function boot() {
       toast("Profil gespeichert!");
     },
     onLogout: () => { logout(); },
-    onReset: () => {
-      try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-      location.reload();
-    },
   });
   document.getElementById("achBtn").onclick = () => { renderAchList(); openAchOverlay(); };
   document.getElementById("questBtn").onclick = () => { renderQuestList(); openQuestOverlay(); };

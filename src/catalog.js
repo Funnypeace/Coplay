@@ -89,35 +89,35 @@ export const CAT = {
   laufband:    { name: "Laufband", emoji: "🏃", price: 420, w: 2, d: 1, hh: 40, lvl: 5,
                  act: { label: "Joggen", dur: 6, needs: { spass: 34, energie: -16 }, xp: 16, fl: "🏃" } },
 };
-export const SHIRTS = ["#3fb8a0", "#e36767", "#9a6fe0", "#e8a13f", "#5f8fe8"];
+export const SHIRTS = ["#3d8f7e", "#b2564f", "#7d63a8", "#c48f45", "#5478b0"];
 
 export function xpNeed(l) { return 100 + (l - 1) * 120; }
 
-/* Räume mit eigenem Look UND eigener Größe (Raster) */
+/* Räume mit eigenem Look UND eigener Größe (Raster) – gedämpfte, edlere Töne statt Comic-Farben */
 export const ROOMS = {
   lounge: {
     name: "Lounge", emoji: "🛋️", grid: 14,
-    bg: ["#1d2438", "#242c44"],
-    floor: ["#c2995f", "#cba368"],
-    wallL: ["#5b688a", "#5f6c90"], wallR: ["#6a78a0", "#6e7ca4"],
-    stripL: "#46516e", stripR: "#525e7e",
-    glassDay: "#aee0ff", glassNight: "#26345e",
+    bg: ["#191d27", "#20242f"],
+    floor: ["#a9835a", "#b58e63"],
+    wallL: ["#4c5468", "#4f586e"], wallR: ["#565f78", "#5a6480"],
+    stripL: "#383f52", stripR: "#414a60",
+    glassDay: "#9cc2dc", glassNight: "#233047",
   },
   garten: {
     name: "Garten", emoji: "🌿", grid: 12,
-    bg: ["#1c2b38", "#223447"],
-    floor: ["#7fae6a", "#8aba74"],
-    wallL: ["#4e7d4d", "#528251"], wallR: ["#5a8f58", "#5e935c"],
-    stripL: "#3c6340", stripR: "#456e49",
-    glassDay: "#cfe8ff", glassNight: "#22304f",
+    bg: ["#171f22", "#1c262a"],
+    floor: ["#748a63", "#7d9269"],
+    wallL: ["#3f5842", "#425c45"], wallR: ["#48624a", "#4b664d"],
+    stripL: "#324832", stripR: "#385036",
+    glassDay: "#b7d4c8", glassNight: "#20302a"
   },
   arcade: {
     name: "Arcade", emoji: "🕹️", grid: 10,
-    bg: ["#181c30", "#20243c"],
-    floor: ["#4a4664", "#514d6e"],
-    wallL: ["#3c3a5e", "#403e63"], wallR: ["#474368", "#4b476d"],
-    stripL: "#2e2c48", stripR: "#343055",
-    glassDay: "#9fb8e8", glassNight: "#1e2746",
+    bg: ["#14151d", "#191b25"],
+    floor: ["#3a3850", "#403d58"],
+    wallL: ["#302e46", "#33314a"], wallR: ["#38364e", "#3b3952"],
+    stripL: "#232135", stripR: "#272538",
+    glassDay: "#8a95c4", glassNight: "#1a1a2c",
   },
 };
 /* Rastergröße des angegebenen Raums (Fallback: GRID) */

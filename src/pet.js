@@ -32,7 +32,7 @@ function feedPet() {
   S.money -= FEED_COST;
   p.food = clamp(p.food + 45, 0, 100);
   const pp = petPixel();
-  if (pp) fl(pp.x, pp.y - 40, "🍖 mampf!", "#f4c95d");
+  if (pp) fl(pp.x, pp.y - 40, "🍖 mampf!", "#e7cb96");
   trackStat("feeds"); questEvent("feed"); renderPetCard(); saveNow(); uiTop();
 }
 function playPet() {
@@ -40,7 +40,7 @@ function playPet() {
   if (p.fun >= 85) { toast(PETS[p.type].emoji + " hat gerade genug gespielt!"); return; }
   p.fun = clamp(p.fun + 40, 0, 100);
   const pp = petPixel();
-  if (pp) fl(pp.x, pp.y - 40, "🎾 juhu!", "#9fe8c5");
+  if (pp) fl(pp.x, pp.y - 40, "🎾 juhu!", "#8fc7a3");
   gainXp(4, 0); questEvent("play"); renderPetCard(); saveNow();
 }
 
@@ -119,7 +119,7 @@ export function renderPetCard() {
     d.className = "need";
     d.innerHTML = '<div class="lab"><span>' + lab + "</span><span>" + Math.round(v) + '</span></div>' +
       '<div class="track"><div class="fill" style="width:' + v + "%;background:" +
-      (v >= 60 ? "linear-gradient(90deg,#4cc9a8,#58e08a)" : v >= 30 ? "linear-gradient(90deg,#e8a13f,#f4c95d)" : "linear-gradient(90deg,#c94c4c,#e36767)") +
+      (v >= 60 ? "linear-gradient(90deg,#4a9270,#6bbb8e)" : v >= 30 ? "linear-gradient(90deg,#b8843f,#e0a856)" : "linear-gradient(90deg,#a3564e,#d97b73)") +
       '"></div></div>';
     el.appendChild(d);
   });
