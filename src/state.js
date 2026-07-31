@@ -21,8 +21,9 @@ export function defaultState() {
 export let S = defaultState();
 
 /* Eingeloggter Account (null-Felder = Gast) */
-export const account = { id: null, username: null, token: null };
+export const account = { id: null, username: null, token: null, isAdmin: false };
 export function activeId() { return account.id || playerId; }
+export function isAdmin() { return !!account.isAdmin; }
 
 export function saveNow() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}

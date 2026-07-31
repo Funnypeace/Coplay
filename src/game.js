@@ -4,7 +4,7 @@ import {
   cv, ctx, clamp, isoPt, shade, poly, line, circ, ell, rect, rrect, txt,
   boxIso, southPt, fl, drawFloaters,
 } from "./draw.js";
-import { S, activeId, saveNow, avgNeeds } from "./state.js";
+import { S, activeId, isAdmin, saveNow, avgNeeds } from "./state.js";
 import * as W from "./world.js";
 import {
   remote, bubbles, broadcastMove, trackPresence, dbPlaceFurniture, dbRemoveFurniture,
@@ -607,6 +607,18 @@ async function sellFurniture(f) {
     toast("Verkaufen fehlgeschlagen – keine Verbindung?", "warn");
   }
 }
+/* Admin-Löschung: kein Taler-Refund, betrifft fremdes/Hub-Möbel */
+async function adminDeleteFurniture(f) {
+  const c = CAT[f.type];
+  try {
+    await dbRemoveFurniture(f.id);
+    W.removeFurnitureById(f.id);
+    if (action && action.fid === f.id) action = null;
+    toast("🗑️ " + c.emoji + " " + c.name + " gelöscht (Admin)");
+  } catch (e) {
+    toast("Löschen fehlgeschlagen – keine Verbindung?", "warn");
+  }
+}
 
 /* ================= Menü-Popup ================= */
 function effectsStr(def) {
@@ -624,25 +636,35 @@ function openLiveMenu(f, x, y) {
 }
 function openBuyMenu(f, x, y) {
   const c = CAT[f.type];
-  if (f.placed_by !== activeId()) {
+  const owned = f.placed_by === activeId();
+  if (!owned && !isAdmin()) {
     const who = f.placed_by ? (f.placed_by_name || "einem anderen Spieler") : "Hub";
     showMenu(x, y, [{ label: "🔒 " + c.emoji + " " + c.name, sub: "Gehört: " + who + " – nur eigene Möbel änderbar", cb: () => hideMenu() }]);
     return;
   }
-  const refund = Math.round(c.price / 2);
-  showMenu(x, y, [
-    { label: "↔️ Verschieben", cb: () => {
+  const moveLabel = owned ? "↔️ Verschieben" : "↔️ Verschieben (Admin)";
+  const entries = [
+    { label: moveLabel, cb: () => {
       hideMenu();
       W.removeFurnitureById(f.id);
       if (action && action.fid === f.id) action = null;
       selection = { type: f.type, moveRef: f };
       setShopSel(null);
     } },
-    { label: "💰 Verkaufen (+" + refund + " Taler)", danger: true, cb: btn => {
+  ];
+  if (owned) {
+    const refund = Math.round(c.price / 2);
+    entries.push({ label: "💰 Verkaufen (+" + refund + " Taler)", danger: true, cb: btn => {
       if (btn.dataset.c) { hideMenu(); sellFurniture(f); }
       else { btn.dataset.c = "1"; btn.innerHTML = "❗ Wirklich verkaufen?"; }
-    } },
-  ]);
+    } });
+  } else {
+    entries.push({ label: "🗑️ Löschen (Admin)", danger: true, cb: btn => {
+      if (btn.dataset.c) { hideMenu(); adminDeleteFurniture(f); }
+      else { btn.dataset.c = "1"; btn.innerHTML = "❗ Wirklich löschen?"; }
+    } });
+  }
+  showMenu(x, y, entries);
 }
 
 /* ================= Eingabe ================= */

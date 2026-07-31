@@ -126,7 +126,7 @@ let overlayMode = "login"; // "login" | "profil"
 
 export function setAuthError(code) {
   const map = {
-    wrong_password: "Falsches Hub-Passwort!",
+    wrong_password: "Falsches Passwort für diesen Namen!",
     bad_username: "Name bitte mit 2–14 Zeichen.",
     bad_password: "Passwort bitte eingeben (mind. 2 Zeichen).",
     network: "Keine Verbindung – später nochmal versuchen (oder als Gast spielen).",
@@ -195,8 +195,8 @@ export function openStartOverlay(mode) {
   nameInput.disabled = !login && !!account.id;
   document.getElementById("startTitle").textContent = login ? "🏡 Willkommen im Coplay-Hub!" : "👤 Profil";
   document.getElementById("startIntro").textContent = login
-    ? "Melde dich mit Namen und Hub-Passwort an – dein bisheriger Fortschritt wird in die Cloud übernommen und ist dann auf jedem Gerät da. Neue Namen werden automatisch registriert."
-    : (account.id ? "Angemeldet als " + account.username + " – Fortschritt liegt in der Cloud." : "Du spielst als Gast – Fortschritt nur auf diesem Gerät.");
+    ? "Melde dich mit Namen und Passwort an – dein bisheriger Fortschritt wird in die Cloud übernommen und ist dann auf jedem Gerät da. Ein neuer Name legt automatisch ein neues Konto mit diesem Passwort an."
+    : (account.id ? "Angemeldet als " + account.username + (account.isAdmin ? " 👑 (Admin-Konto)" : "") + " – Fortschritt liegt in der Cloud." : "Du spielst als Gast – Fortschritt nur auf diesem Gerät.");
   document.getElementById("pwRow").classList.toggle("hidden", !login);
   document.getElementById("guestBtn").classList.toggle("hidden", !login);
   document.getElementById("logoutBtn").classList.toggle("hidden", !(overlayMode === "profil" && account.id));

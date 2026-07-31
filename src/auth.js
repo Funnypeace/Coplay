@@ -1,4 +1,4 @@
-/* Einfache Accounts: Name + Hub-Passwort, Spielstand in der Cloud */
+/* Einfache Accounts: Name + eigenes Passwort, Spielstand in der Cloud */
 import { SUPABASE_URL, SUPABASE_KEY } from "./config.js";
 import { S, account, applyCloudSave, exportSave, saveNow, SAVE_KEY } from "./state.js";
 import { supabase } from "./net.js";
@@ -13,6 +13,7 @@ export async function authLogin(username, password) {
     if (error) return { ok: false, error: "network" };
     if (!data.ok) return data;
     account.id = data.id; account.username = data.username; account.token = data.token;
+    account.isAdmin = !!data.is_admin;
     try { localStorage.setItem(TOKEN_KEY, data.token); } catch (e) {}
     if (data.save) applyCloudSave(data.save);
     S.name = data.username;
@@ -37,6 +38,7 @@ export async function tryTokenLogin() {
     if (error) return false; // Netzproblem: Token behalten, offline weiterspielen
     if (!data.ok) { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} return false; }
     account.id = data.id; account.username = data.username; account.token = t;
+    account.isAdmin = !!data.is_admin;
     if (data.save) applyCloudSave(data.save);
     S.name = data.username;
     S.seenIntro = true;

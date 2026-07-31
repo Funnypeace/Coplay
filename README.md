@@ -7,7 +7,8 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
 ## Features
 
 - **Multiplayer-Hub**: Alle sehen sich live rumlaufen (Supabase Realtime Presence + Broadcast)
-- **Einfache Accounts + Cloud-Save**: Name + gemeinsames Hub-Passwort, Fortschritt liegt in der Cloud und ist auf jedem Gerät da; Gast-Modus (nur lokal) weiterhin möglich
+- **Einfache Accounts + Cloud-Save**: Name + eigenes Passwort (neuer Name = neues Konto), Fortschritt liegt in der Cloud und ist auf jedem Gerät da; Gast-Modus (nur lokal) weiterhin möglich
+- **Admin-Konto**: kann jedes Möbelstück im Hub verschieben/löschen (nicht nur eigene)
 - **3 Räume**: Lounge 🛋️, Garten 🌿 und Arcade 🕹️ – jeweils mit eigenem Look und eigener Einrichtung; Wechsel über die Tür oder den 🚪-Knopf
 - **Globaler Chat**: Panel + Sprechblasen über den Köpfen, Verlauf in der Datenbank (raumübergreifend)
 - **Emotes**: 👋 😂 ❤️ 👍 😮 🎉 per Leiste oder Tasten 1–6, sichtbar für alle im Raum
@@ -39,14 +40,16 @@ Tabellen (Präfix `coplay_`, liegen aktuell im Supabase-Projekt `app-aktivitaets
 
 - `coplay_chat_messages` – globaler Chatverlauf (`player_id`, `name`, `color`, `text`)
 - `coplay_world_furniture` – gemeinsame Hub-Einrichtung (`type`, `x`, `y`, `room`, `placed_by`)
-- `coplay_accounts` – einfache Accounts (`username`, `password_hash`, `token`, `save` als JSONB)
+- `coplay_accounts` – einfache Accounts (`username`, `password_hash`, `token`, `is_admin`, `save` als JSONB)
 
 Chat/Möbel mit RLS (offene Lese-/Schreib-Policies für anonyme Spieler, Längen-/Format-Checks)
 und aktiviertem Realtime (`supabase_realtime` Publication). Die Accounts-Tabelle ist per RLS
 komplett gesperrt – Zugriff nur über `security definer`-Funktionen (`coplay_auth`,
-`coplay_cloud_load`, `coplay_cloud_save`); Passwörter werden mit bcrypt gehasht. Login läuft
-über ein gemeinsames Hub-Passwort (in `coplay_auth` hinterlegt), neue Namen werden dabei
-automatisch registriert; die Session merkt sich ein Token in `localStorage`.
+`coplay_cloud_load`, `coplay_cloud_save`); Passwörter werden mit bcrypt gehasht, jeder Account
+hat sein eigenes. Ein neuer Name registriert beim ersten Login automatisch ein neues Konto mit
+dem eingegebenen Passwort; die Session merkt sich ein Token in `localStorage` für Auto-Login.
+Das Konto `Funnypeace` (`is_admin = true`) darf zusätzlich jedes Möbelstück im Hub verschieben
+oder löschen, unabhängig davon, wer es platziert hat.
 
 ## Entwicklung
 
@@ -83,10 +86,10 @@ src/
 legacy/             Die ursprüngliche Einzeldatei-Version
 ```
 
-## Bekannte Grenzen (v2)
+## Bekannte Grenzen (v3)
 
-- Ein gemeinsames Hub-Passwort für alle Accounts: Wer es kennt, kann sich als jeder
-  beliebige (auch fremde) Benutzername anmelden – bewusst einfach gehalten, nur im
-  Freundeskreis teilen!
+- Bewusst simples Auth-Modell: keine E-Mail-Verifizierung, kein Passwort-Reset – wer den
+  Namen zuerst registriert, hat ihn; Passwörter sind aber pro Account individuell
 - Möbel-Schutz („nur eigene verschieben/verkaufen") wird clientseitig durchgesetzt
+  (Admin-Bypass ebenso) – kein serverseitiges Rechtesystem
 - Gast-Modus speichert weiterhin nur lokal im Browser
