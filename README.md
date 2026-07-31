@@ -17,7 +17,10 @@ arbeiten, gemeinsam einrichten – und ein Tamagotchi-Haustier großziehen.
   Wellness) und Arcade 🕹️ (10×10, kompakter Entertainment-Raum) – eigener Look, eigene
   Einrichtung, eigenes Raster; Wechsel über die Tür oder den 🚪-Knopf
 - **Globaler Chat**: Panel + Sprechblasen über den Köpfen, Verlauf in der Datenbank (raumübergreifend)
-- **Emotes**: 👋 😂 ❤️ 👍 😮 🎉 per Leiste oder Tasten 1–6, sichtbar für alle im Raum
+- **Emotes**: 👋 💃 😂 ❤️ 👍 😮 🎉 per Leiste oder Tasten 1–7, sichtbar für alle im Raum – bei
+  👋 und 💃 winkt/tanzt die Spielfigur selbst sichtbar mit (Arm-Animation), nicht nur ein
+  schwebendes Symbol; dieselbe Tanz-Animation läuft auch bei der echten „Tanzen"-Aktion an
+  der Stereoanlage
 - **Tagesquests**: jeden Tag 3 Aufgaben mit Taler- und XP-Belohnung
 - **Gemeinsames Bauen**: Platzierte Möbel sehen alle sofort; eigene Möbel kann man verschieben/verkaufen, Hub-Möbel sind fest
 - **Bedürfnisse & Aktionen**: Essen, Schlafen, Duschen, Arbeiten, Fernsehen … wie im Original

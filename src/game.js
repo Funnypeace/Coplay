@@ -345,47 +345,84 @@ function drawFurniture(f, t, active) {
 }
 
 /* ================= Figuren ================= */
+/* Einen Arm um das Schulter-Gelenk drehen: raise 0=hängt runter, ~2.4=hoch erhoben */
+function drawArm(bx, shoulderY, side, raise, shirt) {
+  ctx.save();
+  ctx.translate(bx + side * 10, shoulderY);
+  ctx.rotate(-side * raise);
+  rrect(-2, 0, 4, 15, 2, shade(shirt, 0.78));
+  if (raise > 0.6) circ(0, 16, 3, "#f0c8a2");
+  ctx.restore();
+}
+
 function drawPersonAt(gx, gy, name, shirt, opts) {
   opts = opts || {};
   const P = isoPt(gx, gy, 0);
-  const bob = opts.bob || 0;
+  const emoteType = opts.emoteType, emoteT = opts.emoteT || 0;
+  let bob = opts.bob || 0, sway = 0;
+  if (emoteType === "dance") { bob = Math.abs(Math.sin(emoteT * 7)) * 5; sway = Math.sin(emoteT * 6) * 3; }
   ell(P.x, P.y - 2, 13, 6, "rgba(0,0,0,.3)");
-  const by = P.y - bob;
-  rect(P.x - 7, by - 16, 5.5, 14, "#2e3850");
-  rect(P.x + 1.5, by - 16, 5.5, 14, "#2e3850");
-  rrect(P.x - 12, by - 33, 4, 15, 2, shade(shirt, 0.78));
-  rrect(P.x + 8, by - 33, 4, 15, 2, shade(shirt, 0.78));
-  rrect(P.x - 9, by - 36, 18, 22, 6, shirt);
-  circ(P.x, by - 44, 8.5, "#f0c8a2");
-  ctx.beginPath(); ctx.arc(P.x, by - 46.5, 8.2, Math.PI * 0.95, Math.PI * 2.05); ctx.fillStyle = "#6b4a2f"; ctx.fill();
-  circ(P.x - 3, by - 43.5, 1.4, "#222"); circ(P.x + 3, by - 43.5, 1.4, "#222");
-  ctx.beginPath(); ctx.arc(P.x, by - 40.5, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.strokeStyle = "#a3704c"; ctx.lineWidth = 1.4; ctx.stroke();
+  const by = P.y - bob, bx = P.x + sway;
+  rect(bx - 7, by - 16, 5.5, 14, "#2e3850");
+  rect(bx + 1.5, by - 16, 5.5, 14, "#2e3850");
+  if (emoteType === "wave") {
+    drawArm(bx, by - 33, -1, 0, shirt);
+    drawArm(bx, by - 33, 1, 2.3 + Math.sin(emoteT * 10.5) * 0.3, shirt);
+  } else if (emoteType === "dance") {
+    drawArm(bx, by - 33, -1, 1.1 + Math.sin(emoteT * 7 + Math.PI) * 0.9, shirt);
+    drawArm(bx, by - 33, 1, 1.1 + Math.sin(emoteT * 7) * 0.9, shirt);
+  } else {
+    drawArm(bx, by - 33, -1, 0, shirt);
+    drawArm(bx, by - 33, 1, 0, shirt);
+  }
+  rrect(bx - 9, by - 36, 18, 22, 6, shirt);
+  circ(bx, by - 44, 8.5, "#f0c8a2");
+  ctx.beginPath(); ctx.arc(bx, by - 46.5, 8.2, Math.PI * 0.95, Math.PI * 2.05); ctx.fillStyle = "#6b4a2f"; ctx.fill();
+  circ(bx - 3, by - 43.5, 1.4, "#222"); circ(bx + 3, by - 43.5, 1.4, "#222");
+  ctx.beginPath(); ctx.arc(bx, by - 40.5, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.strokeStyle = "#a3704c"; ctx.lineWidth = 1.4; ctx.stroke();
   if (opts.mood != null) {
     const mc = opts.mood >= 70 ? "#6bbb8e" : opts.mood >= 40 ? "#e0a856" : "#d97b73";
     ctx.save(); ctx.shadowColor = mc; ctx.shadowBlur = 10;
-    circ(P.x, by - 61 + Math.sin((opts.t || 0) * 2.4) * 1.5, 4.5, mc);
+    circ(bx, by - 61 + Math.sin((opts.t || 0) * 2.4) * 1.5, 4.5, mc);
     ctx.restore();
   }
-  txt(name, P.x, by - 71, 11.5, "#eef2fb");
-  if (opts.level) txt("Lv " + opts.level, P.x, by - 82, 9.5, "#c9b98a");
+  txt(name, bx, by - 71, 11.5, "#eef2fb");
+  if (opts.level) txt("Lv " + opts.level, bx, by - 82, 9.5, "#c9b98a");
   if (opts.progress != null) {
-    rrect(P.x - 23, by - 88, 46, 8, 4, "#111318");
-    if (opts.progress > 0.02) rrect(P.x - 21, by - 86, 42 * opts.progress, 4, 2, "#d3ad68");
+    rrect(bx - 23, by - 88, 46, 8, 4, "#111318");
+    if (opts.progress > 0.02) rrect(bx - 21, by - 86, 42 * opts.progress, 4, 2, "#d3ad68");
   }
+}
+
+/* Aktive Wink-/Tanz-Animation für eine Spieler-ID (Emote ODER laufende "Tanzen"-Aktion) */
+function charAnim(id, forceDance) {
+  if (forceDance) return { type: "dance", t: performance.now() / 1000 };
+  const em = emoteMap.get(id);
+  if (!em) return null;
+  const t = (performance.now() - em.t0) / 1000;
+  if (em.e === "👋") return { type: "wave", t };
+  if (em.e === "💃") return { type: "dance", t };
+  return null;
 }
 
 function drawSelf(t) {
   const moving = charPath.length > 0;
   const bob = moving ? Math.abs(Math.sin(walkPhase * 9)) * 3 : (action ? Math.abs(Math.sin(t * 3)) * 1.5 : 0);
+  const dancing = !!(action && action.def.label === "Tanzen");
+  const anim = charAnim(activeId(), dancing);
   drawPersonAt(S.char.x, S.char.y, S.name || "Ich", S.shirt, {
     bob, mood: avgNeeds(), t,
     progress: action ? clamp(action.t / action.dur, 0, 1) : null,
+    emoteType: anim && anim.type, emoteT: anim && anim.t,
   });
 }
 function drawRemote(p, t) {
   const moving = Math.hypot(p.tx - p.x, p.ty - p.y) > 0.05;
   const bob = moving ? Math.abs(Math.sin(t * 9)) * 3 : 0;
-  drawPersonAt(p.x, p.y, p.name || "Gast", p.shirt || "#9aa7c4", { bob, level: p.level });
+  const anim = charAnim(p.id, false);
+  drawPersonAt(p.x, p.y, p.name || "Gast", p.shirt || "#9aa7c4", {
+    bob, level: p.level, emoteType: anim && anim.type, emoteT: anim && anim.t,
+  });
   if (p.pet) drawRemotePet(p.x, p.y, p.pet, t);
 }
 
@@ -500,7 +537,7 @@ export function render(t, dt) {
 }
 
 /* ================= Emotes ================= */
-export const EMOTES = ["👋", "😂", "❤️", "👍", "😮", "🎉"];
+export const EMOTES = ["👋", "💃", "😂", "❤️", "👍", "😮", "🎉"];
 const emoteMap = new Map(); // id -> {e, t0}
 export function showEmote(id, e) {
   emoteMap.set(id, { e, t0: performance.now() });
@@ -775,7 +812,7 @@ export function initInput() {
     if (e.key === "Escape") { cancelSelection(); hideMenu(); closeOverlaysOnEsc(); }
     const typing = chatHasFocus() || document.activeElement.tagName === "INPUT";
     if ((e.key === "b" || e.key === "B") && !typing) setMode(mode === "live" ? "buy" : "live");
-    if (!typing && e.key >= "1" && e.key <= "6") sendMyEmote(EMOTES[Number(e.key) - 1]);
+    if (!typing && e.key >= "1" && e.key <= "7") sendMyEmote(EMOTES[Number(e.key) - 1]);
   });
   document.getElementById("modeBtn").onclick = () => setMode(mode === "live" ? "buy" : "live");
   document.getElementById("roomBtn").onclick = () => openRoomMenu(14, 14);
